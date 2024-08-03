@@ -1,0 +1,80 @@
+@font-face {
+  font-family: Aeonik;
+  src: url('/fonts/Aeonik-Bold.woff2');
+  font-weight: 700;
+}
+@font-face {
+  font-family: Aeonik;
+  src: url('/fonts/Aeonik-Regular.woff2');
+  font-weight: 400;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  font-family: Aeonik, Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --chart-primary: #102773;
+  --chart-border: #a7cddf;
+  --chart-border-middle: #e49a45;
+}
+
+.graph-parent {
+  padding: 2.25em 3em;
+  background-color: white;
+  border-radius: 1.5rem;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 2rem;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.container {
+  max-width: 1300px;
+  margin-inline: auto;
+  padding-block: 4rem;
+  padding-inline: 1rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 3.75fr 1fr;
+  grid-template-rows: 1fr;
+  gap: 2rem;
+}
+
+h3 {
+  font-family: Aeonik;
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 1;
+}
+
+@media (max-width: 1024px) {
+  /* … */
+  .grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+}
+
+.graph-outer {
+  max-width: 100%;
+  overflow-x: auto;
+}
