@@ -2,6 +2,9 @@ import { debouncedFetchAddresses } from '@/fetchers/address';
 import { assertValue } from '@/utils/util';
 
 const initSearchAddress = () => {
+  /*
+   * Addressing primary elements
+   */
   const addressInput = assertValue(
     document.querySelector<HTMLInputElement>('[data-address-input]'),
     `Address input element([data-address-input]) was not found!`
@@ -21,139 +24,128 @@ const initSearchAddress = () => {
     `Address result item([data-address-item]) was not found!`
   );
 
+  /*
+   * UI States
+   */
+  let resultItems: HTMLLIElement[] = [];
+  let highlightedIndex = 0;
+
+  /*
+   * State changer callbacks
+   */
+  const setResultItems = (items: HTMLLIElement[]) => {
+    resultItems = items;
+  };
+
+  const setHighlightedIndex = (index: number) => {
+    const prevItem = resultItems[highlightedIndex];
+    const currItem = resultItems[index];
+
+    prevItem?.classList.remove('focused');
+    currItem?.classList.add('focused');
+
+    highlightedIndex = index;
+  };
+
+  let keyboardNavigationCallback: ((e: KeyboardEvent) => void) | undefined = undefined;
+  let clickOutsideCallback: ((e: MouseEvent) => void) | undefined = undefined;
+
+  const selectResultItem = (index: number) => {
+    const selectedItem = resultItems[index];
+
+    const textElement = assertValue(
+      selectedItem?.querySelector<HTMLParagraphElement>('p'),
+      'List item paragraph element was not found!'
+    );
+
+    const text = textElement.textContent?.trim();
+
+    if (!text) throw new Error('Result item is invalid'!);
+
+    addressInput.value = text;
+    addressInput.focus();
+  };
+
   const closeResultModal = () => {
     addressResultContainer.classList.add('is--hidden');
   };
 
-  const openResultModal = (listItems?: HTMLLIElement[]) => {
-    const resultItems =
-      listItems ||
-      Array.from(addressResultList.querySelectorAll<HTMLLIElement>('[data-address-item]'));
+  const setupEventListeners = () => {
+    /*
+     * Click and hover effects
+     */
+    for (let i = 0; i < resultItems.length; i++) {
+      const resultItem = resultItems[i]!;
 
-    const listItemsLength = resultItems.length;
+      resultItem.addEventListener('mouseenter', () => {
+        setHighlightedIndex(i);
+      });
 
-    if (listItemsLength === 0) {
-      closeResultModal();
-      return;
+      resultItem.addEventListener('click', () => {
+        selectResultItem(i);
+        closeResultModal();
+      });
     }
 
-    addressResultContainer.classList.remove('is--hidden');
+    /*
+     * Handle outside click
+     */
 
-    let activeIndex = 0;
+    if (clickOutsideCallback !== undefined) {
+      document.body.removeEventListener('mousedown', clickOutsideCallback);
+    }
 
-    const dehighlightItem = () => {
-      const selectedItem = resultItems[activeIndex];
-      selectedItem.classList.remove('focused');
-    };
-
-    const highlightItem = () => {
-      const selectedItem = resultItems[activeIndex];
-      selectedItem.classList.add('focused');
-    };
-
-    const goDown = () => {
-      dehighlightItem();
-
-      const newIndex = activeIndex + 1;
-
-      if (newIndex > listItemsLength - 1) {
-        activeIndex = 0;
-      } else {
-        activeIndex = newIndex;
-      }
-
-      highlightItem();
-    };
-
-    const goUp = () => {
-      dehighlightItem();
-
-      const newIndex = activeIndex - 1;
-
-      if (newIndex < 0) {
-        activeIndex = listItemsLength - 1;
-      } else {
-        activeIndex = newIndex;
-      }
-
-      highlightItem();
-    };
-    const enterCallback = () => {
-      const selectedItem = resultItems[activeIndex];
-
-      const textElement = assertValue(
-        selectedItem.querySelector<HTMLParagraphElement>('p'),
-        'List item paragraph element was not found!'
-      );
-
-      const text = textElement.textContent?.trim();
-
-      if (!text) throw new Error('Result item is invalid'!);
-
-      addressInput.value = text;
-
-      closeResultModal();
-      activeIndex = 0;
-    };
-
-    const keyboardNavigationCallback = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        addressInput.blur();
-        enterCallback();
-        addressInput.focus();
-        document.removeEventListener('keydown', keyboardNavigationCallback);
-      }
-      if (e.key === 'ArrowDown') {
-        goDown();
-      }
-      if (e.key === 'ArrowUp') {
-        goUp();
-      }
-    };
-
-    const clickOutsideCallback = (e: MouseEvent) => {
+    clickOutsideCallback = (e: MouseEvent) => {
       if ((e.target as HTMLElement).closest('[data-address-container]')) return;
 
       closeResultModal();
-      document.body.removeEventListener('mousedown', clickOutsideCallback);
-      document.removeEventListener('keydown', keyboardNavigationCallback);
     };
 
-    const resultItemClickCallback = (e: MouseEvent) => {
-      const selectedItem = (e.target as HTMLElement).closest<HTMLLIElement>('[data-address-item]');
-
-      if (selectedItem === null) return;
-
-      const textElement = assertValue(
-        selectedItem.querySelector<HTMLParagraphElement>('p'),
-        'List item paragraph element was not found!'
-      );
-
-      const text = textElement.textContent?.trim();
-
-      if (!text) throw new Error('Result item is invalid'!);
-
-      addressInput.value = text;
-
-      closeResultModal();
-
-      document.body.removeEventListener('mousedown', clickOutsideCallback);
-      document.removeEventListener('keydown', keyboardNavigationCallback);
-      addressResultContainer.removeEventListener('click', resultItemClickCallback);
-    };
-
-    highlightItem();
     document.body.addEventListener('mousedown', clickOutsideCallback);
+
+    /*
+     * Keyboard navigation
+     */
+
+    if (keyboardNavigationCallback !== undefined) {
+      document.removeEventListener('keydown', keyboardNavigationCallback);
+    }
+
+    keyboardNavigationCallback = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addressInput.blur();
+        selectResultItem(highlightedIndex);
+        addressInput.focus();
+        closeResultModal();
+      }
+      if (e.key === 'ArrowDown') {
+        addressInput.blur();
+        setHighlightedIndex(highlightedIndex >= resultItems.length - 1 ? 0 : highlightedIndex + 1);
+      }
+      if (e.key === 'ArrowUp') {
+        addressInput.blur();
+        setHighlightedIndex(highlightedIndex <= 0 ? resultItems.length - 1 : highlightedIndex - 1);
+      }
+    };
+
     document.addEventListener('keydown', keyboardNavigationCallback);
-    addressResultContainer.addEventListener('click', resultItemClickCallback);
+  };
+
+  const openResultModal = () => {
+    addressResultContainer.classList.remove('is--hidden');
   };
 
   const renderAddressList = (addresses: string[]) => {
     addressResultList.innerHTML = '';
+    setHighlightedIndex(0);
 
-    if (addresses.length === 0) return;
+    if (addresses.length === 0) {
+      setResultItems([]);
+      return;
+    }
 
+    const resultItems: HTMLLIElement[] = [];
     const fragment = document.createDocumentFragment();
 
     for (let i = 0; i < addresses.length; i++) {
@@ -164,17 +156,34 @@ const initSearchAddress = () => {
         'List item paragraph element was not found!'
       );
 
-      textElement.textContent = addresses[i];
+      textElement.textContent = addresses[i]!;
       textElement.dataset.index = i.toString();
+
+      if (i === 0) {
+        listItem.classList.add('focused');
+      }
+
       fragment.appendChild(listItem);
+      resultItems.push(listItem);
     }
 
     addressResultList.appendChild(fragment);
+
+    setResultItems(resultItems);
+    setupEventListeners();
   };
+
+  /*
+   * Initial render
+   */
 
   renderAddressList([]);
 
   let mostRecentInputTimestamp: number | undefined = undefined;
+
+  /*
+   * Main search event init
+   */
 
   addressInput.addEventListener('input', (e) => {
     const event = e as InputEvent;
@@ -186,6 +195,7 @@ const initSearchAddress = () => {
     mostRecentInputTimestamp = currentTimestamp;
 
     if (value === '') {
+      renderAddressList([]);
       closeResultModal();
       return;
     }
@@ -194,6 +204,12 @@ const initSearchAddress = () => {
       if (mostRecentInputTimestamp !== undefined && mostRecentInputTimestamp !== currentTimestamp)
         return;
       renderAddressList(result);
+
+      if (result.length === 0) {
+        closeResultModal();
+        return;
+      }
+
       openResultModal();
     });
   });
