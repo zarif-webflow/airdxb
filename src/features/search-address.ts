@@ -1,4 +1,4 @@
-import { debouncedFetchAddresses } from '@/fetchers/address';
+import { fetchAddresses } from '@/fetchers/address';
 import { assertValue } from '@/utils/util';
 
 const initSearchAddress = () => {
@@ -174,45 +174,47 @@ const initSearchAddress = () => {
   };
 
   /*
-   * Initial render
-   */
-
-  renderAddressList([]);
-
-  let mostRecentInputTimestamp: number | undefined = undefined;
-
-  /*
    * Main search event init
    */
 
-  addressInput.addEventListener('input', (e) => {
-    const event = e as InputEvent;
-    const inputElement = event.target as HTMLInputElement;
+  fetchAddresses.then(({ fetchAddresses }) => {
+    let mostRecentInputTimestamp: number | undefined = undefined;
 
-    const value = inputElement.value;
+    addressInput.addEventListener('input', (e) => {
+      const event = e as InputEvent;
+      const inputElement = event.target as HTMLInputElement;
 
-    const currentTimestamp = Date.now();
-    mostRecentInputTimestamp = currentTimestamp;
+      const value = inputElement.value;
 
-    if (value === '') {
-      renderAddressList([]);
-      closeResultModal();
-      return;
-    }
+      const currentTimestamp = Date.now();
+      mostRecentInputTimestamp = currentTimestamp;
 
-    debouncedFetchAddresses(value, (result: string[]) => {
-      if (mostRecentInputTimestamp !== undefined && mostRecentInputTimestamp !== currentTimestamp)
-        return;
-      renderAddressList(result);
-
-      if (result.length === 0) {
+      if (value === '') {
+        renderAddressList([]);
         closeResultModal();
         return;
       }
 
-      openResultModal();
+      fetchAddresses(value, (result: string[]) => {
+        if (mostRecentInputTimestamp !== undefined && mostRecentInputTimestamp !== currentTimestamp)
+          return;
+        renderAddressList(result);
+
+        if (result.length === 0) {
+          closeResultModal();
+          return;
+        }
+
+        openResultModal();
+      });
     });
   });
+
+  /*
+   * Initial render
+   */
+
+  renderAddressList([]);
 };
 
 initSearchAddress();

@@ -6,6 +6,7 @@
     "paths": {
       "@/*": ["src/*"]
     },
+    "noUncheckedIndexedAccess": true,
     "types": ["@finsweet/ts-utils", "@types/google.maps"]
   }
 }

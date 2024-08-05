@@ -40,7 +40,7 @@
   justify-content: start;
   column-gap: 0.5rem;
 }
-.search-result-item:hover,
+
 .search-result-item.focused {
   background-color: rgba(0, 0, 0, 0.1);
 }
