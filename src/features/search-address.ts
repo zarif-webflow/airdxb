@@ -68,6 +68,14 @@ const initSearchAddress = () => {
 
   const closeResultModal = () => {
     addressResultContainer.classList.add('is--hidden');
+
+    if (clickOutsideCallback !== undefined) {
+      document.body.removeEventListener('mousedown', clickOutsideCallback);
+    }
+
+    if (keyboardNavigationCallback !== undefined) {
+      document.removeEventListener('keydown', keyboardNavigationCallback);
+    }
   };
 
   const setupEventListeners = () => {
@@ -120,11 +128,11 @@ const initSearchAddress = () => {
         closeResultModal();
       }
       if (e.key === 'ArrowDown') {
-        addressInput.blur();
+        e.preventDefault();
         setHighlightedIndex(highlightedIndex >= resultItems.length - 1 ? 0 : highlightedIndex + 1);
       }
       if (e.key === 'ArrowUp') {
-        addressInput.blur();
+        e.preventDefault();
         setHighlightedIndex(highlightedIndex <= 0 ? resultItems.length - 1 : highlightedIndex - 1);
       }
     };
