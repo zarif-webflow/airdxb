@@ -22,9 +22,11 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  --chart-primary: #102773;
-  --chart-border: #a7cddf;
+  --chart-line: #0741ff;
+  --chart-border: #cccccc;
   --chart-border-middle: #e49a45;
+  --chart-text: #858585;
+  --chart-text-secondary: #969595;
 }
 
 .graph-parent {
@@ -70,4 +72,8 @@ h3 {
 .graph-outer {
   max-width: 100%;
   overflow-x: auto;
+}
+
+.calculator-form {
+  overflow-x: clip;
 }

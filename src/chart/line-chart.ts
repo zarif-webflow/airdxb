@@ -2,6 +2,7 @@ import {
   CategoryScale,
   Chart,
   type ChartConfiguration,
+  Filler,
   LinearScale,
   LineController,
   LineElement,
@@ -11,9 +12,17 @@ import {
 
 import { LINE_CHART_DEFAULT_COLOR } from '@/utils/constants';
 import { data } from '@/utils/static-data';
-import { assertValue } from '@/utils/util';
+import { assertValue, hexToRgb } from '@/utils/util';
 
-Chart.register(Tooltip, LineController, LineElement, PointElement, CategoryScale, LinearScale);
+Chart.register(
+  Tooltip,
+  LineController,
+  LineElement,
+  PointElement,
+  CategoryScale,
+  LinearScale,
+  Filler
+);
 
 const initChart = () => {
   const canvasElement = assertValue(
@@ -25,8 +34,8 @@ const initChart = () => {
 
   const { fontFamily, fontWeight, fontSize } = computedStyles;
 
-  const colorPrimary =
-    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-primary') ??
+  const colorLine =
+    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-line') ??
     LINE_CHART_DEFAULT_COLOR;
   const colorBorder =
     window.getComputedStyle(document.documentElement).getPropertyValue('--chart-border') ??
@@ -34,8 +43,14 @@ const initChart = () => {
   const colorBorderMiddle =
     window.getComputedStyle(document.documentElement).getPropertyValue('--chart-border-middle') ??
     LINE_CHART_DEFAULT_COLOR;
+  const colorText =
+    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-text') ??
+    LINE_CHART_DEFAULT_COLOR;
+  const colorTextSecondary =
+    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-text-secondary') ??
+    LINE_CHART_DEFAULT_COLOR;
 
-  const stepSize = 2;
+  const stepSize = 4;
   const values = data.map((item) => item.value);
   const months = data.map((item) => item.month);
 
@@ -50,8 +65,25 @@ const initChart = () => {
         {
           data: values,
           borderWidth: 3,
-          borderColor: colorPrimary,
+          borderColor: colorLine,
           pointStyle: 'circle',
+          fill: true,
+          backgroundColor: (ctx) => {
+            const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, ctx.chart.height);
+            const colorRgb = hexToRgb(colorLine);
+            const startColor =
+              colorRgb !== null
+                ? `rgb(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, 0.2)`
+                : `rgba(0, 0, 0, 0.1)`;
+            const endColor =
+              colorRgb !== null
+                ? `rgb(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, 0)`
+                : `rgba(0, 0, 0, 0)`;
+            gradient.addColorStop(0, startColor);
+            gradient.addColorStop(1, endColor);
+            return gradient;
+          },
+          pointBackgroundColor: colorLine,
         },
       ],
     },
@@ -60,17 +92,12 @@ const initChart = () => {
       maintainAspectRatio: false,
       scales: {
         x: {
-          border: { display: true, color: colorBorder, width: 2 },
+          border: { display: false },
           grid: {
-            display: true,
-            lineWidth: 0,
-            drawTicks: true,
-            tickWidth: 2,
-            tickColor: colorBorder,
-            tickLength: 10,
+            display: false,
           },
           offset: true,
-          ticks: { color: colorPrimary },
+          ticks: { color: colorText },
         },
         y: {
           beginAtZero: true,
@@ -85,11 +112,13 @@ const initChart = () => {
             },
             drawTicks: false,
           },
-          border: { display: true, color: colorBorder, width: 2 },
           ticks: {
             stepSize,
-            color: colorPrimary,
             padding: 10,
+            color: colorTextSecondary,
+          },
+          border: {
+            display: false,
           },
         },
       },
