@@ -16,7 +16,7 @@ const initSearchAddress = () => {
     `Address result container([data-address-result]) was not found!`
   );
   const addressResultList = assertValue(
-    addressResultContainer?.querySelector<HTMLUListElement>('[data-address-list]'),
+    addressResultContainer?.querySelector<HTMLDivElement>('[data-address-list]'),
     `Address result list([data-address-list]) was not found!`
   );
   const addressResultItem = assertValue(

@@ -1,0 +1,11 @@
+:root {
+  --chart-line: #0741ff;
+  --chart-border: #cccccc;
+  --chart-border-middle: #e49a45;
+  --chart-text: #858585;
+  --chart-text-secondary: #969595;
+}
+
+.chart-outer {
+  overflow-x: auto;
+}

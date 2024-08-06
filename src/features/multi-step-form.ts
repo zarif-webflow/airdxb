@@ -2,20 +2,34 @@ import { animate } from 'motion';
 
 import { assertValue } from '@/utils/util';
 
-const form = assertValue(document.querySelector<HTMLFormElement>('form[data-calculator-form]'));
-const step1Element = assertValue(form.querySelector<HTMLDivElement>('[data-form-step="1"]'));
+const form = assertValue(
+  document.querySelector<HTMLFormElement>('form[data-calculator-form]'),
+  `form element([data-calculator-form]) was not found!`
+);
+const step1Element = assertValue(
+  form.querySelector<HTMLDivElement>('[data-form-step="1"]'),
+  `form step 1 element([data-form-step="1"]) was not found!`
+);
 const nextButton = assertValue(
-  step1Element.querySelector<HTMLButtonElement>('button[data-next-button]')
+  form.querySelector<HTMLButtonElement>('[data-next-button]'),
+  'Form next button ([data-next-button]) was not found'
 );
-const step2Element = assertValue(form.querySelector<HTMLDivElement>('[data-form-step="2"]'));
+const step2Element = assertValue(
+  form.querySelector<HTMLDivElement>('[data-form-step="2"]'),
+  `form step 2 element([data-form-step="2"]) was not found!`
+);
 const prevButton = assertValue(
-  step2Element.querySelector<HTMLButtonElement>('button[data-prev-button]')
+  form.querySelector<HTMLButtonElement>('button[data-prev-button]'),
+  'Form prev button ([data-prev-button]) was not found'
 );
-
-const step1InputElements = [
-  assertValue(form.querySelector<HTMLInputElement>('[data-address-input]')),
+const addressInputElement = assertValue(
+  form.querySelector<HTMLInputElement>('[data-address-input]'),
+  'Address input element ([data-address-input]) was not found'
+);
+const bedroomsSelectElement = assertValue(
   assertValue(form.querySelector<HTMLSelectElement>('[data-bedrooms-input]')),
-];
+  'Bedroom input element ([data-address-input]) was not found'
+);
 
 const animateNext = async () => {
   await animate(step1Element, { opacity: 0, transform: 'translateX(-100%)' }, { duration: 0.4 })
@@ -48,7 +62,7 @@ const animatePrev = async () => {
 };
 
 nextButton.addEventListener('click', () => {
-  for (const inputEl of step1InputElements) {
+  for (const inputEl of [addressInputElement, bedroomsSelectElement]) {
     if (inputEl.checkValidity()) continue;
     inputEl.reportValidity();
     return;
