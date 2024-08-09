@@ -11,6 +11,7 @@ const ENTRY_POINTS = [
   'src/features/line-chart.ts',
   'src/features/search-address.ts',
   'src/features/multi-step-form.ts',
+  'src/features/trigger-reveals.ts',
 ];
 
 // Config dev serving
