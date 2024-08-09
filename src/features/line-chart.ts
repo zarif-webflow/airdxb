@@ -117,6 +117,10 @@ const initChart = () => {
             stepSize,
             padding: 10,
             color: colorTextSecondary,
+            callback: (ctx) => {
+              if (ctx.toString() === '0') return '0';
+              return ctx.toString() + 'k';
+            },
           },
           border: {
             display: false,
@@ -125,7 +129,19 @@ const initChart = () => {
       },
       plugins: {
         legend: { display: false },
-        tooltip: { enabled: true },
+        tooltip: {
+          callbacks: {
+            label: (data) => {
+              const text = `${(Number.parseFloat(String(data.raw)) * 1000).toLocaleString() || 'N/A'}`;
+              return text.length >= 10 ? text : text.padEnd(10);
+            },
+          },
+          padding: 9,
+          titleMarginBottom: 8,
+          titleAlign: 'left',
+          footerMarginTop: 0,
+          displayColors: false,
+        },
       },
     },
   };
