@@ -1,5 +1,5 @@
 import { Loader } from '@googlemaps/js-api-loader';
-import debounce from 'lodash.debounce';
+import debounce from 'lodash/debounce';
 
 import { assertValue } from '@/utils/util';
 
@@ -23,10 +23,10 @@ const getFetchAddressesFunc = async () => {
       return;
     }
 
-    const returnCallback = function (
+    const returnCallback = (
       predictions: google.maps.places.QueryAutocompletePrediction[] | null,
       status: google.maps.places.PlacesServiceStatus
-    ) {
+    ) => {
       let result: string[] = [];
 
       if (status !== google.maps.places.PlacesServiceStatus.OK && status !== 'ZERO_RESULTS') {

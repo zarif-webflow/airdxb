@@ -1,66 +1,31 @@
 {
-  "name": "@finsweet/developer-starter",
+  "name": "airdxb",
+  "private": true,
   "version": "0.0.0",
-  "description": "Developer starter template for Finsweet projects.",
-  "homepage": "https://github.com/finsweet/developer-starter#readme",
-  "license": "ISC",
-  "keywords": [],
-  "author": {
-    "name": "Finsweet",
-    "url": "https://finsweet.com/"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/finsweet/developer-starter.git"
-  },
-  "bugs": {
-    "url": "https://github.com/finsweet/developer-starter/issues"
-  },
-  "type": "module",
-  "main": "src/index.ts",
-  "module": "src/index.ts",
-  "files": [
-    "dist"
-  ],
   "scripts": {
-    "dev": "cross-env NODE_ENV=development node ./bin/build.js",
-    "build": "cross-env NODE_ENV=production node ./bin/build.js",
-    "lint": "eslint --ignore-path .gitignore ./src && prettier --check ./src",
-    "lint:fix": "eslint --ignore-path .gitignore ./src --fix",
     "typecheck": "tsc --noEmit",
-    "format": "prettier --write ./src",
-    "test": "playwright test",
-    "test:ui": "playwright test --ui",
-    "release": "changeset publish",
-    "update": "pnpm update -i -L -r"
+    "build": "rollup --config rollup.config.ts --configPlugin typescript",
+    "dev": "rollup --watch --config rollup.config.ts --configPlugin typescript"
   },
   "devDependencies": {
-    "@changesets/changelog-git": "^0.2.0",
-    "@changesets/cli": "^2.27.1",
-    "@finsweet/eslint-config": "^2.0.7",
-    "@finsweet/tsconfig": "^1.3.4",
-    "@playwright/test": "^1.42.1",
-    "@typescript-eslint/eslint-plugin": "^7.1.1",
-    "@typescript-eslint/parser": "^7.1.1",
-    "cross-env": "^7.0.3",
-    "esbuild": "^0.20.1",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.1.3",
-    "eslint-plugin-simple-import-sort": "^12.0.0",
-    "prettier": "^3.2.5",
-    "typescript": "^5.3.3"
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/google.maps": "^3.55.12",
+    "rollup": "^4.20.0",
+    "rollup-plugin-dev": "^2.0.5",
+    "rollup-plugin-iife": "^0.7.1",
+    "typescript": "^5.5.2"
   },
   "dependencies": {
-    "@finsweet/ts-utils": "^0.40.0",
     "@googlemaps/js-api-loader": "^1.16.8",
-    "@types/google.maps": "^3.55.12",
-    "@types/lodash.debounce": "^4.0.9",
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-replace": "^5.0.7",
+    "@types/lodash": "^4.17.7",
     "chart.js": "^4.4.3",
-    "lodash.debounce": "^4.0.8",
-    "motion": "^10.18.0"
-  },
-  "engines": {
-    "pnpm": ">=9"
+    "lodash": "^4.17.21",
+    "motion": "^10.18.0",
+    "rollup-plugin-esbuild": "^6.1.1",
+    "rollup-plugin-livereload": "^2.0.5",
+    "rollup-plugin-serve": "^1.1.1"
   }
 }

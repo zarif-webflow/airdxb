@@ -1,0 +1,1 @@
+function i(n,r){if(n==null)throw new Error(r??"Value was not provided!");return n}const o=n=>{if(n.startsWith("#")&&(n=n.slice(1)),n.length!==3&&n.length!==6)return null;n.length===3&&(n=n.split("").map(e=>e+e).join(""));const r=parseInt(n,16),s=r>>16&255,l=r>>8&255,a=r&255;return{r:s,g:l,b:a}};export{i as a,o as h};

@@ -1,6 +1,6 @@
 const init = () => {
-  const triggerRevealParents = document.querySelectorAll<HTMLElement>(
-    '[data-trigger-reveal-parent]'
+  const triggerRevealParents = Array.from(
+    document.querySelectorAll<HTMLElement>('[data-trigger-reveal-parent]')
   );
 
   if (triggerRevealParents.length === 0) {
@@ -27,7 +27,9 @@ const init = () => {
   };
 
   for (const triggerRevealParent of triggerRevealParents) {
-    const triggers = triggerRevealParent.querySelectorAll<HTMLElement>('[data-trigger]');
+    const triggers = Array.from(
+      triggerRevealParent.querySelectorAll<HTMLElement>('[data-trigger]')
+    );
 
     if (triggers.length === 0) {
       console.error(
