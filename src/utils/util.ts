@@ -35,3 +35,42 @@ export const hexToRgb = (hex: string): { r: number; g: number; b: number } | nul
 
   return { r, g, b };
 };
+
+export const getAssertedHtmlElement = <TElement extends HTMLElement = HTMLElement>(
+  selector: string,
+  parent?: HTMLElement
+) => {
+  return assertValue(
+    (parent || document).querySelector<TElement>(selector),
+    `Element: ${selector} was not found!`
+  );
+};
+export const getAssertedHtmlElements = <TElement extends HTMLElement = HTMLElement>(
+  selector: string,
+  parent?: HTMLElement
+) => {
+  const elements = (parent || document).querySelectorAll<TElement>(selector);
+
+  if (elements.length === 0) throw new Error(`Element: ${selector} was not found!`);
+
+  return Array.from(elements);
+};
+
+export const setStyle = <TElement extends HTMLElement = HTMLElement>(
+  element: TElement,
+  styles: Record<string, string>
+): { revert: () => void } => {
+  const prevValues: typeof styles = {};
+
+  for (const key of Object.keys(styles)) {
+    prevValues[key] = element.style.getPropertyValue(key);
+  }
+
+  Object.assign(element.style, styles);
+
+  return {
+    revert: () => {
+      Object.assign(element.style, prevValues);
+    },
+  };
+};

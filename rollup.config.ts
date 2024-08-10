@@ -9,6 +9,7 @@ import servePlugin from 'rollup-plugin-serve';
 
 export default defineConfig({
   input: {
+    select: './src/features/select.ts',
     'line-chart': './src/features/line-chart.ts',
     'multi-step-form': './src/features/multi-step-form.ts',
     'search-address': './src/features/search-address.ts',
