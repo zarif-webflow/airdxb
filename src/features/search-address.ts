@@ -32,12 +32,26 @@ const initSearchAddress = () => {
   let highlightedIndex = 0;
   let position: 'top' | 'bottom' | undefined = undefined;
   let isModalOpen = false;
+  const optionListId = addressResultList.id || 'address-result-options';
 
   modalFragment.appendChild(addressResultContainer);
 
   /*
    * State changer callbacks
    */
+
+  const setupInitialAttributes = () => {
+    addressInput.type = 'search';
+    addressInput.ariaAutoComplete = 'both';
+    addressInput.setAttribute('autocomplete', 'off');
+    addressInput.setAttribute('autocorrect', 'off');
+    addressInput.setAttribute('autocapitalize', 'off');
+    addressInput.setAttribute('spellcheck', 'false');
+    addressInput.setAttribute('aria-controls', optionListId);
+
+    addressResultList.role = 'listbox';
+    addressResultList.id = optionListId;
+  };
 
   const setModalPosition = () => {
     const { height: contentHeight } = addressResultContainer.getBoundingClientRect();
@@ -118,8 +132,16 @@ const initSearchAddress = () => {
     const prevItem = resultItems[highlightedIndex];
     const currItem = resultItems[index];
 
-    prevItem?.classList.remove('focused');
-    currItem?.classList.add('focused');
+    if (prevItem) {
+      prevItem.classList.remove('focused');
+      prevItem.ariaSelected = 'false';
+    }
+
+    if (currItem) {
+      currItem.classList.add('focused');
+      currItem.ariaSelected = 'true';
+      addressInput.setAttribute('aria-activedescendant', currItem.id);
+    }
 
     highlightedIndex = index;
   };
@@ -145,6 +167,7 @@ const initSearchAddress = () => {
 
   const closeResultModal = () => {
     modalFragment.appendChild(addressResultContainer);
+    addressInput.removeAttribute('aria-activedescendant');
 
     if (clickOutsideCallback !== undefined) {
       document.body.removeEventListener('mousedown', clickOutsideCallback);
@@ -158,14 +181,15 @@ const initSearchAddress = () => {
   };
 
   const setupEventListeners = () => {
-    scrollAwareness();
-    resizeAwareness();
-
     /*
      * Click and hover effects
      */
     for (let i = 0; i < resultItems.length; i++) {
       const resultItem = resultItems[i]!;
+
+      resultItem.role = 'option';
+      resultItem.ariaSelected = 'false';
+      resultItem.id = `address-suggestion-${i}`;
 
       resultItem.addEventListener('mouseenter', () => {
         setHighlightedIndex(i);
@@ -218,6 +242,11 @@ const initSearchAddress = () => {
       if (e.key === 'ArrowUp') {
         e.preventDefault();
         setHighlightedIndex(highlightedIndex <= 0 ? resultItems.length - 1 : highlightedIndex - 1);
+      }
+
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeResultModal();
       }
     };
 
@@ -308,6 +337,9 @@ const initSearchAddress = () => {
    * Initial render
    */
 
+  setupInitialAttributes();
+  scrollAwareness();
+  resizeAwareness();
   renderAddressList([]);
 };
 
