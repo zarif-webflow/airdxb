@@ -7,10 +7,14 @@
     <link rel="stylesheet" href="./styles.css" />
     <link rel="stylesheet" href="./search.css" />
     <link rel="stylesheet" href="./select.css" />
-    <script type="module" src="/dist/select.js"></script>
+    <script type="module" src="http://localhost:3000/select.js"></script>
+    <script type="module" src="http://localhost:3000/search-address.js"></script>
+    <script type="module" src="http://localhost:3000/multi-step-form.js"></script>
+    <script type="module" src="http://localhost:3000/line-chart.js"></script>
+    <!-- <script type="module" src="/dist/select.js"></script>
     <script type="module" src="/dist/search-address.js"></script>
     <script type="module" src="/dist/multi-step-form.js"></script>
-    <script type="module" src="/dist/line-chart.js"></script>
+    <script type="module" src="/dist/line-chart.js"></script> -->
     <!-- <script type="module" src="/dist/trigger-reveals.js"></script> -->
   </head>
 
@@ -144,7 +148,7 @@
                   fill="currentColor"
                 ></path>
               </svg>
-              <div data-st-root name="bedrooms" required class="select-root">
+              <div data-st-root data-name="bedrooms" data-required class="select-root">
                 <button data-st-trigger class="select-trigger">
                   <span data-st-value class="select-value">No. of bedrooms</span>
                   <svg
@@ -170,7 +174,7 @@
                         fill="currentColor"
                         width="16"
                         height="16"
-                        class="select-icon"
+                        class="select-indicator"
                         data-st-indicator
                       >
                         <path
@@ -181,14 +185,14 @@
                       </svg>
                       No. of bedrooms
                     </div> -->
-                    <div data-st-option class="select-option" value="Studio">
+                    <div data-st-option class="select-option" data-value="Studio">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 16 16"
                         fill="currentColor"
                         width="16"
                         height="16"
-                        class="select-icon"
+                        class="select-indicator"
                         data-st-indicator
                       >
                         <path
@@ -199,14 +203,14 @@
                       </svg>
                       Studio
                     </div>
-                    <div data-st-option class="select-option" value="1">
+                    <div data-st-option class="select-option" data-value="1">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 16 16"
                         fill="currentColor"
                         width="16"
                         height="16"
-                        class="select-icon"
+                        class="select-indicator"
                         data-st-indicator
                       >
                         <path
@@ -217,14 +221,14 @@
                       </svg>
                       1
                     </div>
-                    <div data-st-option class="select-option" value="2">
+                    <div data-st-option class="select-option" data-value="2">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 16 16"
                         fill="currentColor"
                         width="16"
                         height="16"
-                        class="select-icon"
+                        class="select-indicator"
                         data-st-indicator
                       >
                         <path
@@ -235,14 +239,14 @@
                       </svg>
                       2
                     </div>
-                    <div data-st-option class="select-option" value="3">
+                    <div data-st-option class="select-option" data-value="3">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 16 16"
                         fill="currentColor"
                         width="16"
                         height="16"
-                        class="select-icon"
+                        class="select-indicator"
                         data-st-indicator
                       >
                         <path
@@ -253,14 +257,14 @@
                       </svg>
                       3
                     </div>
-                    <div data-st-option class="select-option" value="4">
+                    <div data-st-option class="select-option" data-value="4">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 16 16"
                         fill="currentColor"
                         width="16"
                         height="16"
-                        class="select-icon"
+                        class="select-indicator"
                         data-st-indicator
                       >
                         <path
@@ -271,14 +275,14 @@
                       </svg>
                       4
                     </div>
-                    <div data-st-option class="select-option" value="5+">
+                    <div data-st-option class="select-option" data-value="5+">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 16 16"
                         fill="currentColor"
                         width="16"
                         height="16"
-                        class="select-icon"
+                        class="select-indicator"
                         data-st-indicator
                       >
                         <path

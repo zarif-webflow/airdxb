@@ -153,12 +153,12 @@ export class Selectron {
     for (let i = 0; i < optionElements.length; i++) {
       const element = optionElements[i]!;
 
-      const value = element.getAttribute('value') ?? element.textContent?.trim();
+      const value = element.getAttribute('data-value') ?? element.textContent?.trim();
 
       if (value === undefined)
         throw new Error('Option element must have a value or a text content!');
 
-      element.setAttribute('value', value);
+      element.setAttribute('data-value', value);
       element.setAttribute('id', `${this.elementIds.id}--option-${i}`);
 
       const isDefault = element.hasAttribute('selected') && !isDefaultSelected;
@@ -179,13 +179,13 @@ export class Selectron {
   private setupNativeSelect() {
     const nativeSelect = document.createElement('select');
 
-    const selectName = this.rootElement.getAttribute('name');
+    const selectName = this.rootElement.getAttribute('data-name');
     selectName && (nativeSelect.name = selectName);
 
     nativeSelect.setAttribute('inert', '');
     nativeSelect.tabIndex = -1;
 
-    if (this.rootElement.hasAttribute('required')) {
+    if (this.rootElement.hasAttribute('data-required')) {
       nativeSelect.required = true;
     }
 
@@ -252,7 +252,7 @@ export class Selectron {
     this.content.setAttribute('aria-labelledby', this.elementIds.trigger);
     this.content.ariaOrientation = 'vertical';
 
-    if (this.rootElement.hasAttribute('required')) {
+    if (this.rootElement.hasAttribute('data-required')) {
       this.content.ariaRequired = 'true';
     }
 
@@ -261,9 +261,6 @@ export class Selectron {
       'min-width': `var(--st-content-min-w)`,
       left: `var(--st-content-left)`,
       top: `var(--st-content-top)`,
-      '--st-x': '0px',
-      '--st-y': '0px',
-      transform: 'translateX(var(--st-x)) translateY(var(--st-y))',
     });
 
     // Viewport
@@ -323,7 +320,7 @@ export class Selectron {
     this.selectedOptionIndex = optionIndex;
     this.highlightOption(optionIndex, 'hover');
 
-    const value = optionElement.getAttribute('value');
+    const value = optionElement.getAttribute('data-value');
 
     if (value === null) {
       throw new Error('Option element must have a value!');
@@ -438,15 +435,15 @@ export class Selectron {
 
     this.position = targetPosition;
 
+    this.content.setAttribute('data-position', targetPosition);
+
     if (targetPosition === 'bottom') {
       setStyle(this.content, {
         '--st-content-top': `${offsetTop}px`,
-        '--st-y': '4px',
       });
     } else {
       setStyle(this.content, {
         '--st-content-top': `${triggerOffsetTop - contentHeight}px`,
-        '--st-y': '-4px',
       });
     }
   }

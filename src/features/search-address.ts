@@ -71,6 +71,8 @@ const initSearchAddress = () => {
 
     position = window.innerHeight > contentWindowTop ? 'bottom' : 'top';
 
+    addressResultContainer.setAttribute('data-position', position);
+
     if (position === 'bottom') {
       setStyle(addressResultContainer, {
         position: 'absolute',

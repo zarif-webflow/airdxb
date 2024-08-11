@@ -51,11 +51,11 @@
   box-shadow: inset 0px 0px 0px 2px rgb(155, 155, 155);
 }
 
-.select-option .select-icon {
+.select-option .select-indicator {
   opacity: 0;
 }
 
-.select-option[data-selected='true']:not([value='']) .select-icon {
+.select-option[data-selected='true']:not([value='']) .select-indicator {
   opacity: 1;
 }
 
