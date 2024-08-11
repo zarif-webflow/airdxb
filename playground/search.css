@@ -51,3 +51,7 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
 }
+
+[data-address-result]:not([data-initialized]) {
+  visibility: hidden;
+}

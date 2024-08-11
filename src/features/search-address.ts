@@ -35,6 +35,7 @@ const initSearchAddress = () => {
   const optionListId = addressResultList.id || 'address-result-options';
 
   modalFragment.appendChild(addressResultContainer);
+  addressResultContainer.dataset.initialized = '';
 
   /*
    * State changer callbacks

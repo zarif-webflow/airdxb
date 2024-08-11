@@ -1,19 +1,5 @@
 import { getAssertedHtmlElement, getAssertedHtmlElements, setStyle } from '@/utils/util';
 
-const hideAnElement = <TElement extends HTMLElement = HTMLElement>(element: TElement): void => {
-  setStyle(element, {
-    display: 'none',
-    width: '1px',
-    height: '1px',
-    padding: '0px',
-    margin: '-1px',
-    overflow: 'hidden',
-    clip: 'rect(0px, 0px, 0px, 0px)',
-    'white-space': 'nowrap',
-    'overflow-wrap': 'normal',
-  });
-};
-
 const generatedUids: Set<string> = new Set();
 
 export class Selectron {
@@ -32,7 +18,7 @@ export class Selectron {
     viewport: string;
     id: string;
   };
-  private defaultOptionIndex: number = 0;
+  private defaultOptionIndex: number | undefined = undefined;
   private selectedOptionIndex: number | undefined = undefined;
   private highlightedOptionIndex: number | undefined = undefined;
   private isOpen: boolean = false;
@@ -70,8 +56,6 @@ export class Selectron {
     this.fragment.appendChild(this.content);
 
     this.initialSetup();
-
-    this.selectOption(this.defaultOptionIndex);
 
     this.clickOutsideCallback = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -184,6 +168,8 @@ export class Selectron {
       if (isDefault) {
         isDefaultSelected = true;
         this.defaultOptionIndex = i;
+        this.triggerValue.textContent = element.textContent?.trim() || null;
+        this.triggerValue.setAttribute('data-selected', '');
       }
     }
 
@@ -196,10 +182,16 @@ export class Selectron {
     const selectName = this.rootElement.getAttribute('name');
     selectName && (nativeSelect.name = selectName);
 
-    nativeSelect.ariaHidden = 'true';
+    nativeSelect.setAttribute('inert', '');
     nativeSelect.tabIndex = -1;
 
+    if (this.rootElement.hasAttribute('required')) {
+      nativeSelect.required = true;
+    }
+
     const optionsFragment = document.createDocumentFragment();
+
+    let wasDefaultSelected = false;
 
     for (let i = 0; i < this.optionItems.length; i++) {
       const { value: optionValue } = this.optionItems[i]!;
@@ -208,15 +200,34 @@ export class Selectron {
       optionElement.value = optionValue;
       optionElement.textContent = optionValue;
 
-      if (i === this.defaultOptionIndex) {
+      if (i === this.defaultOptionIndex && !wasDefaultSelected) {
         optionElement.setAttribute('selected', '');
+        wasDefaultSelected = true;
       }
 
       optionsFragment.appendChild(optionElement);
     }
 
     nativeSelect.appendChild(optionsFragment);
-    hideAnElement(nativeSelect);
+
+    setStyle(this.rootElement, { position: 'relative' });
+
+    setStyle(nativeSelect, {
+      width: '0px',
+      height: '0px',
+      padding: '0px',
+      margin: '0px',
+      overflow: 'hidden',
+      position: 'absolute',
+      bottom: '0px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      clip: 'rect(0px, 0px, 0px, 0px)',
+      'white-space': 'nowrap',
+      'overflow-wrap': 'normal',
+    });
+
+    !wasDefaultSelected && (nativeSelect.value = '');
 
     this.rootElement.appendChild(nativeSelect);
 
@@ -263,6 +274,7 @@ export class Selectron {
       const optionItem = this.optionItems[i]!;
       optionItem.element.role = 'option';
       optionItem.element.tabIndex = -1;
+
       optionItem.element.ariaSelected = i === this.defaultOptionIndex ? 'true' : 'false';
       optionItem.element.dataset.selected = i === this.defaultOptionIndex ? 'true' : 'false';
 
@@ -287,6 +299,8 @@ export class Selectron {
 
   private removeSelection() {
     for (const { value, element: optionElement } of this.optionItems) {
+      this.triggerValue.removeAttribute('data-selected');
+
       if (value === '') {
         this.triggerValue.textContent = optionElement.textContent;
         optionElement.dataset.selected = 'false';
@@ -294,8 +308,8 @@ export class Selectron {
         continue;
       }
 
-      optionElement.ariaSelected = 'false';
       optionElement.dataset.selected = 'false';
+      optionElement.ariaSelected = 'false';
       optionElement.classList.remove('selected');
     }
     this.nativeSelect.value = '';
@@ -315,9 +329,15 @@ export class Selectron {
       throw new Error('Option element must have a value!');
     }
 
-    this.nativeSelect.value = value;
+    if (value) {
+      this.nativeSelect.value = value;
+      this.triggerValue.setAttribute('data-selected', '');
+    } else {
+      this.nativeSelect.removeAttribute('value');
+      this.triggerValue.removeAttribute('data-selected');
+    }
 
-    this.triggerValue.textContent = optionElement.textContent;
+    this.triggerValue.textContent = optionElement.textContent?.trim() || null;
 
     optionElement.ariaSelected = 'true';
     optionElement.dataset.selected = 'true';

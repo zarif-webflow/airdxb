@@ -27,7 +27,7 @@ const addressInputElement = assertValue(
   'Address input element ([data-address-input]) was not found'
 );
 const bedroomsSelectElement = assertValue(
-  assertValue(form.querySelector<HTMLSelectElement>('[data-bedrooms-input]')),
+  assertValue(form.querySelector<HTMLSelectElement>('select[name="bedrooms"]')),
   'Bedroom input element ([data-address-input]) was not found'
 );
 
