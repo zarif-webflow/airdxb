@@ -18,9 +18,12 @@ const generatedUids: Set<string> = new Set();
 
 export class Selectron {
   private rootElement: HTMLElement;
+  private nativeSelect: HTMLSelectElement;
   private trigger: HTMLElement;
+  private triggerValue: HTMLElement;
   private content: HTMLElement;
   private viewport: HTMLElement;
+  private fragment: DocumentFragment;
   private optionItems: Record<string, { element: HTMLElement; isDefault: boolean }>;
   private elementIds: {
     rootElement: string;
@@ -29,20 +32,45 @@ export class Selectron {
     viewport: string;
     id: string;
   };
+  private isContentRectSet: boolean = false;
+  private isOpen: boolean = false;
+  private position: 'top' | 'bottom' | undefined = undefined;
+  private triggerRect: {
+    offsetTop: number;
+    offsetLeft: number;
+    width: number;
+    height: number;
+  } = { offsetTop: 0, offsetLeft: 0, width: 0, height: 0 };
+  private contentRect: {
+    offsetTop: number;
+    offsetLeft: number;
+    width: number;
+    height: number;
+  } = { offsetTop: 0, offsetLeft: 0, width: 0, height: 0 };
 
   constructor(rootElement: HTMLElement) {
     this.rootElement = rootElement;
+    this.fragment = document.createDocumentFragment();
     this.trigger = getAssertedHtmlElement('[data-st-trigger]', this.rootElement);
+    this.triggerValue = getAssertedHtmlElement('[data-st-value]', this.trigger);
     this.content = getAssertedHtmlElement('[data-st-content]', this.rootElement);
+
     this.viewport = getAssertedHtmlElement('[data-st-viewport]', this.rootElement);
     this.optionItems = this.getOptionItems();
     this.elementIds = this.generateElementIds();
+    this.nativeSelect = this.setupNativeSelect();
 
-    this.setupNativeSelect();
+    this.setElementRects();
+
+    // remove main listbox from dom
+    this.fragment.appendChild(this.content);
+
     this.initialAriaSetup();
+
+    this.setupEventListeners();
   }
 
-  generateId() {
+  private generateId() {
     while (true) {
       const uid = Math.random().toString(36).substring(2, 8);
       if (generatedUids.has(uid)) continue;
@@ -50,8 +78,8 @@ export class Selectron {
     }
   }
 
-  generateElementIds(): typeof this.elementIds {
-    const id = `st::${this.generateId()}`;
+  private generateElementIds(): typeof this.elementIds {
+    const id = `st--${this.generateId()}`;
     let rootId = this.rootElement.id;
 
     if (rootId === '') {
@@ -61,9 +89,9 @@ export class Selectron {
 
     const elementIds = {
       id,
-      content: `${id}::content`,
-      trigger: `${id}::trigger`,
-      viewport: `${id}::viewport`,
+      content: `${id}--content`,
+      trigger: `${id}--trigger`,
+      viewport: `${id}--viewport`,
       rootElement: rootId,
     };
 
@@ -74,7 +102,7 @@ export class Selectron {
     return elementIds;
   }
 
-  getOptionItems() {
+  private getOptionItems() {
     const optionItems: typeof this.optionItems = {};
 
     const optionElements = getAssertedHtmlElements('[data-st-option]', this.rootElement);
@@ -85,13 +113,14 @@ export class Selectron {
       if (value === undefined)
         throw new Error('Option element must have a value or a text content!');
 
+      element.setAttribute('value', value);
       optionItems[value] = { element, isDefault: element.hasAttribute('selected') };
     }
 
     return optionItems;
   }
 
-  setupNativeSelect() {
+  private setupNativeSelect() {
     let isDefaultSelected = false;
 
     const nativeSelect = document.createElement('select');
@@ -128,13 +157,17 @@ export class Selectron {
     return nativeSelect;
   }
 
-  initialAriaSetup() {
+  private initialAriaSetup() {
     // Trigger
     this.trigger.setAttribute('type', 'button');
     this.trigger.tagName !== 'BUTTON' && (this.trigger.role = 'button');
     this.trigger.ariaHasPopup = 'listbox';
     this.trigger.ariaExpanded = 'false';
     this.trigger.setAttribute('aria-controls', this.elementIds.content);
+
+    this.trigger.addEventListener('click', () => {
+      this.openModal();
+    });
 
     // Listbox
     this.content.role = 'listbox';
@@ -157,6 +190,144 @@ export class Selectron {
       svgs.forEach((svg) => {
         svg.ariaHidden = 'true';
       });
+
+      optionItem.element.addEventListener('click', () => {
+        this.selectOption(optionItem.element);
+      });
     }
+  }
+
+  private removeSelection() {
+    for (const [value, optionItem] of Object.entries(this.optionItems)) {
+      if (value === '') {
+        this.triggerValue.textContent = optionItem.element.textContent;
+        optionItem.element.dataset.selected = 'false';
+        optionItem.element.ariaSelected = 'false';
+        continue;
+      }
+
+      optionItem.element.ariaSelected = 'false';
+      optionItem.element.dataset.selected = 'false';
+      optionItem.element.classList.remove('selected');
+    }
+    this.nativeSelect.value = '';
+  }
+
+  private selectOption(optionElement: HTMLElement) {
+    this.removeSelection();
+
+    const value = optionElement.getAttribute('value');
+
+    if (value === null) {
+      throw new Error('Option element must have a value!');
+    }
+
+    this.nativeSelect.value = value;
+
+    this.triggerValue.textContent = optionElement.textContent;
+
+    optionElement.ariaSelected = 'true';
+    optionElement.dataset.selected = 'true';
+    optionElement.classList.add('selected');
+
+    this.closeModal();
+  }
+
+  private closeModal() {
+    this.fragment.appendChild(this.content);
+    this.isOpen = false;
+    document.body.removeEventListener('click', this.clickOutsideCallback);
+  }
+
+  private clickOutsideCallback(e: MouseEvent) {
+    const target = e.target as Node;
+
+    if (
+      this.content.isSameNode(target) ||
+      this.content.contains(target) ||
+      this.rootElement.isSameNode(target) ||
+      this.rootElement.contains(target)
+    )
+      return;
+
+    this.closeModal();
+  }
+
+  private openModal() {
+    document.body.appendChild(this.content);
+    this.isOpen = true;
+    this.setModalPosition();
+
+    document.body.addEventListener('click', this.clickOutsideCallback);
+  }
+
+  private setElementRects() {
+    const triggerRect = this.trigger.getBoundingClientRect();
+    const contentRect = this.content.getBoundingClientRect();
+
+    this.triggerRect.offsetTop = this.trigger.offsetTop;
+    this.triggerRect.offsetLeft = this.trigger.offsetLeft;
+    this.triggerRect.width = triggerRect.width;
+    this.triggerRect.height = triggerRect.height;
+
+    this.contentRect.offsetTop = this.triggerRect.offsetTop + this.triggerRect.height;
+    this.contentRect.offsetLeft = this.triggerRect.offsetLeft;
+    this.contentRect.width = contentRect.width;
+    this.contentRect.height = contentRect.height;
+
+    setStyle(this.content, {
+      position: 'absolute',
+      'min-width': `${this.contentRect.width}px`,
+      left: `${this.contentRect.offsetLeft}px`,
+    });
+  }
+
+  private setModalPosition() {
+    const { offsetTop, height: contentHeight } = this.contentRect;
+    const { height: triggerHeight, offsetTop: triggerOffsetTop } = this.triggerRect;
+
+    const contentWindowTop =
+      this.trigger.getBoundingClientRect().top + triggerHeight + contentHeight + 80;
+
+    const targetPosition: NonNullable<typeof this.position> =
+      window.innerHeight > contentWindowTop ? 'bottom' : 'top';
+
+    if (this.position !== undefined && targetPosition === this.position) return;
+
+    this.position = targetPosition;
+
+    if (targetPosition === 'bottom') {
+      setStyle(this.content, {
+        top: `${offsetTop}px`,
+        transform: `translateX(0px) translateY(0px)`,
+      });
+    } else {
+      setStyle(this.content, {
+        top: `${triggerOffsetTop - contentHeight}px`,
+        transform: `translateX(0px) translateY(0px)`,
+      });
+    }
+  }
+
+  private setupEventListeners() {
+    const onScroll = () => {
+      if (!this.isOpen) return;
+      this.setModalPosition();
+    };
+
+    const scrollObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            window.addEventListener('scroll', onScroll);
+            return;
+          }
+          window.removeEventListener('scroll', onScroll);
+        }
+      },
+      { root: null, threshold: 0 }
+    );
+
+    scrollObserver.observe(this.trigger);
   }
 }

@@ -1,0 +1,55 @@
+.select-trigger {
+  background-color: var(--swatch--light-bg);
+  padding: 8px 16px;
+  border-radius: 0.675rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 1rem;
+  min-width: 200px;
+}
+
+.select-root:has([data-selected='true'][value='']) .select-trigger .select-value {
+  color: #888888;
+}
+
+.select-content {
+  background-color: var(--swatch--light-bg);
+  min-width: 200px;
+  max-width: max-content;
+  transform: translateY(4px);
+  border-radius: 1rem;
+  padding: 4px;
+  display: grid;
+  border: solid 1px rgb(231, 231, 231);
+  box-shadow: 1px 0px 5px 0px rgba(0, 0, 0, 0.05);
+  position: absolute;
+}
+
+.select-option {
+  padding-block: 4px;
+  padding-inline: 12px 15px;
+  color: #464646;
+  border-radius: 0.675rem;
+  transition: 0.2s all ease;
+  display: grid;
+  grid-template-columns: 1rem auto;
+  column-gap: 0.5rem;
+  align-items: center;
+}
+
+.select-option:hover {
+  background-color: rgb(228, 228, 228);
+}
+
+.select-option .select-icon {
+  opacity: 0;
+}
+
+.select-option[data-selected='true']:not([value='']) .select-icon {
+  opacity: 1;
+}
+
+[data-st-content]:not([role='listbox']) {
+  visibility: hidden;
+}
