@@ -60,8 +60,8 @@ export class Selectron {
     this.content = getAssertedHtmlElement('[data-st-content]', this.rootElement);
 
     this.viewport = getAssertedHtmlElement('[data-st-viewport]', this.rootElement);
-    this.optionItems = this.getOptionItems();
     this.elementIds = this.generateElementIds();
+    this.optionItems = this.getOptionItems();
     this.nativeSelect = this.setupNativeSelect();
 
     this.setElementRects();
@@ -177,6 +177,7 @@ export class Selectron {
         throw new Error('Option element must have a value or a text content!');
 
       element.setAttribute('value', value);
+      element.setAttribute('id', `${this.elementIds.id}--option-${i}`);
 
       const isDefault = element.hasAttribute('selected') && !isDefaultSelected;
 
@@ -242,6 +243,10 @@ export class Selectron {
     this.content.setAttribute('aria-labelledby', this.elementIds.trigger);
     this.content.ariaOrientation = 'vertical';
 
+    if (this.rootElement.hasAttribute('required')) {
+      this.content.ariaRequired = 'true';
+    }
+
     setStyle(this.content, {
       position: 'absolute',
       'min-width': `var(--st-content-min-w)`,
@@ -275,6 +280,9 @@ export class Selectron {
 
       optionItem.element.addEventListener('mouseenter', () => {
         this.highlightOption(i);
+      });
+      optionItem.element.addEventListener('mouseleave', () => {
+        this.dehighlightOptions();
       });
     }
   }
@@ -320,9 +328,7 @@ export class Selectron {
     this.closeModal();
   }
 
-  private highlightOption(optionIndex: number, type: 'focus' | 'hover' = 'hover') {
-    const optionElement = this.optionItems[optionIndex]!.element;
-
+  private dehighlightOptions() {
     if (this.highlightedOptionIndex !== undefined) {
       const prevHighlightedOption = this.optionItems[this.highlightedOptionIndex]!;
 
@@ -331,6 +337,15 @@ export class Selectron {
       prevHighlightedOption.element.removeAttribute('data-hovered');
       prevHighlightedOption.element.blur();
     }
+
+    this.highlightedOptionIndex = undefined;
+    this.content.removeAttribute('aria-activedescendant');
+  }
+
+  private highlightOption(optionIndex: number, type: 'focus' | 'hover' = 'hover') {
+    const optionElement = this.optionItems[optionIndex]!.element;
+
+    this.dehighlightOptions();
 
     if (type === 'focus') {
       optionElement.classList.add('focused');
@@ -343,12 +358,17 @@ export class Selectron {
       optionElement.setAttribute('data-hovered', 'true');
     }
 
+    const optionId = optionElement.getAttribute('id');
+
+    if (optionId !== null) this.content.setAttribute('aria-activedescendant', optionId);
+
     this.highlightedOptionIndex = optionIndex;
   }
 
   private closeModal() {
     this.fragment.appendChild(this.content);
     this.isOpen = false;
+    this.trigger.ariaExpanded = 'false';
     document.body.removeEventListener('click', this.clickOutsideCallback);
     document.removeEventListener('keydown', this.keyboardNavigationCallback);
   }
@@ -356,6 +376,7 @@ export class Selectron {
   private openModal() {
     document.body.appendChild(this.content);
     this.isOpen = true;
+    this.trigger.ariaExpanded = 'true';
 
     if (this.selectedOptionIndex !== undefined) {
       this.highlightOption(this.selectedOptionIndex);
