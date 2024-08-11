@@ -33,6 +33,7 @@ export class Selectron {
     id: string;
   };
   private defaultOptionIndex: number = 0;
+  private selectedOptionIndex: number | undefined = undefined;
   private highlightedOptionIndex: number | undefined = undefined;
   private isOpen: boolean = false;
   private position: 'top' | 'bottom' | undefined = undefined;
@@ -68,7 +69,7 @@ export class Selectron {
     // remove main listbox from dom
     this.fragment.appendChild(this.content);
 
-    this.initialAriaSetup();
+    this.initialSetup();
 
     this.selectOption(this.defaultOptionIndex);
 
@@ -118,9 +119,15 @@ export class Selectron {
           'focus'
         );
       }
+
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        this.closeModal();
+      }
     };
 
     this.scrollAwareness();
+    this.resizeAwareness();
   }
 
   private generateId() {
@@ -217,7 +224,7 @@ export class Selectron {
     return nativeSelect;
   }
 
-  private initialAriaSetup() {
+  private initialSetup() {
     // Trigger
     this.trigger.setAttribute('type', 'button');
     this.trigger.tagName !== 'BUTTON' && (this.trigger.role = 'button');
@@ -234,6 +241,13 @@ export class Selectron {
     this.content.tabIndex = 0;
     this.content.setAttribute('aria-labelledby', this.elementIds.trigger);
     this.content.ariaOrientation = 'vertical';
+
+    setStyle(this.content, {
+      position: 'absolute',
+      'min-width': `var(--st-content-min-w)`,
+      left: `var(--st-content-left)`,
+      top: `var(--st-content-top)`,
+    });
 
     // Viewport
     this.viewport.role = 'presentation';
@@ -283,6 +297,7 @@ export class Selectron {
 
     this.removeSelection();
 
+    this.selectedOptionIndex = optionIndex;
     this.highlightOption(optionIndex, 'hover');
 
     const value = optionElement.getAttribute('value');
@@ -338,6 +353,11 @@ export class Selectron {
   private openModal() {
     document.body.appendChild(this.content);
     this.isOpen = true;
+
+    if (this.selectedOptionIndex !== undefined) {
+      this.highlightOption(this.selectedOptionIndex);
+    }
+
     this.setModalPosition();
 
     document.body.addEventListener('click', this.clickOutsideCallback);
@@ -359,9 +379,8 @@ export class Selectron {
     this.contentRect.height = contentRect.height;
 
     setStyle(this.content, {
-      position: 'absolute',
-      'min-width': `${this.contentRect.width}px`,
-      left: `${this.contentRect.offsetLeft}px`,
+      '--st-content-min-w': `${Math.max(this.contentRect.width, this.triggerRect.width)}px`,
+      '--st-content-left': `${this.contentRect.offsetLeft}px`,
     });
   }
 
@@ -381,12 +400,12 @@ export class Selectron {
 
     if (targetPosition === 'bottom') {
       setStyle(this.content, {
-        top: `${offsetTop}px`,
+        '--st-content-top': `${offsetTop}px`,
         transform: `translateX(0px) translateY(0px)`,
       });
     } else {
       setStyle(this.content, {
-        top: `${triggerOffsetTop - contentHeight}px`,
+        '--st-content-top': `${triggerOffsetTop - contentHeight}px`,
         transform: `translateX(0px) translateY(0px)`,
       });
     }
@@ -412,5 +431,20 @@ export class Selectron {
     );
 
     scrollObserver.observe(this.trigger);
+  }
+
+  private resizeAwareness() {
+    const onResize = () => {
+      this.setElementRects();
+      this.setModalPosition();
+    };
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const _ of entries) {
+        onResize();
+      }
+    });
+
+    resizeObserver.observe(document.body);
   }
 }

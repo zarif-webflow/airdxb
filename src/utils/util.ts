@@ -64,9 +64,8 @@ export const setStyle = <TElement extends HTMLElement = HTMLElement>(
 
   for (const key of Object.keys(styles)) {
     prevValues[key] = element.style.getPropertyValue(key);
+    element.style.setProperty(key, styles[key] || null);
   }
-
-  Object.assign(element.style, styles);
 
   return {
     revert: () => {
