@@ -247,6 +247,9 @@ export class Selectron {
       'min-width': `var(--st-content-min-w)`,
       left: `var(--st-content-left)`,
       top: `var(--st-content-top)`,
+      '--st-x': '0px',
+      '--st-y': '0px',
+      transform: 'translateX(var(--st-x)) translateY(var(--st-y))',
     });
 
     // Viewport
@@ -368,13 +371,13 @@ export class Selectron {
     const triggerRect = this.trigger.getBoundingClientRect();
     const contentRect = this.content.getBoundingClientRect();
 
-    this.triggerRect.offsetTop = this.trigger.offsetTop;
-    this.triggerRect.offsetLeft = this.trigger.offsetLeft;
+    this.triggerRect.offsetTop = triggerRect.top + globalThis.scrollY;
+    this.triggerRect.offsetLeft = triggerRect.left + globalThis.scrollX;
     this.triggerRect.width = triggerRect.width;
     this.triggerRect.height = triggerRect.height;
 
-    this.contentRect.offsetTop = this.triggerRect.offsetTop + this.triggerRect.height;
-    this.contentRect.offsetLeft = this.triggerRect.offsetLeft;
+    this.contentRect.offsetTop = triggerRect.top + globalThis.scrollY + this.triggerRect.height;
+    this.contentRect.offsetLeft = triggerRect.left + globalThis.scrollX;
     this.contentRect.width = contentRect.width;
     this.contentRect.height = contentRect.height;
 
@@ -394,19 +397,17 @@ export class Selectron {
     const targetPosition: NonNullable<typeof this.position> =
       window.innerHeight > contentWindowTop ? 'bottom' : 'top';
 
-    if (this.position !== undefined && targetPosition === this.position) return;
-
     this.position = targetPosition;
 
     if (targetPosition === 'bottom') {
       setStyle(this.content, {
         '--st-content-top': `${offsetTop}px`,
-        transform: `translateX(0px) translateY(0px)`,
+        '--st-y': '4px',
       });
     } else {
       setStyle(this.content, {
         '--st-content-top': `${triggerOffsetTop - contentHeight}px`,
-        transform: `translateX(0px) translateY(0px)`,
+        '--st-y': '-4px',
       });
     }
   }
@@ -435,6 +436,7 @@ export class Selectron {
 
   private resizeAwareness() {
     const onResize = () => {
+      if (!this.isOpen) return;
       this.setElementRects();
       this.setModalPosition();
     };
