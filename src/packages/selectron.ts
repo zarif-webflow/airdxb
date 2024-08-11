@@ -24,7 +24,7 @@ export class Selectron {
   private content: HTMLElement;
   private viewport: HTMLElement;
   private fragment: DocumentFragment;
-  private optionItems: Record<string, { element: HTMLElement; isDefault: boolean }>;
+  private optionItems: { element: HTMLElement; value: string }[];
   private elementIds: {
     rootElement: string;
     trigger: string;
@@ -32,7 +32,8 @@ export class Selectron {
     viewport: string;
     id: string;
   };
-  private isContentRectSet: boolean = false;
+  private defaultOptionIndex: number = 0;
+  private highlightedOptionIndex: number | undefined = undefined;
   private isOpen: boolean = false;
   private position: 'top' | 'bottom' | undefined = undefined;
   private triggerRect: {
@@ -47,6 +48,8 @@ export class Selectron {
     width: number;
     height: number;
   } = { offsetTop: 0, offsetLeft: 0, width: 0, height: 0 };
+  private clickOutsideCallback: (e: MouseEvent) => void;
+  private keyboardNavigationCallback: (e: KeyboardEvent) => void;
 
   constructor(rootElement: HTMLElement) {
     this.rootElement = rootElement;
@@ -67,7 +70,57 @@ export class Selectron {
 
     this.initialAriaSetup();
 
-    this.setupEventListeners();
+    this.selectOption(this.defaultOptionIndex);
+
+    this.clickOutsideCallback = (e: MouseEvent) => {
+      const target = e.target as Node;
+
+      if (
+        this.content.isSameNode(target) ||
+        this.content.contains(target) ||
+        this.trigger.isSameNode(target) ||
+        this.trigger.contains(target)
+      )
+        return;
+
+      this.closeModal();
+    };
+
+    this.keyboardNavigationCallback = (e: KeyboardEvent) => {
+      console.log(e.key);
+
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+
+        if (this.highlightedOptionIndex === undefined) return;
+
+        this.selectOption(this.highlightedOptionIndex);
+        this.closeModal();
+      }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+
+        this.highlightOption(
+          this.highlightedOptionIndex === undefined ||
+            this.highlightedOptionIndex >= this.optionItems.length - 1
+            ? 0
+            : this.highlightedOptionIndex + 1,
+          'focus'
+        );
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+
+        this.highlightOption(
+          this.highlightedOptionIndex === undefined || this.highlightedOptionIndex <= 0
+            ? this.optionItems.length - 1
+            : this.highlightedOptionIndex - 1,
+          'focus'
+        );
+      }
+    };
+
+    this.scrollAwareness();
   }
 
   private generateId() {
@@ -103,26 +156,35 @@ export class Selectron {
   }
 
   private getOptionItems() {
-    const optionItems: typeof this.optionItems = {};
+    let isDefaultSelected = false;
+    const optionItems: typeof this.optionItems = [];
 
     const optionElements = getAssertedHtmlElements('[data-st-option]', this.rootElement);
 
-    for (const element of optionElements) {
+    for (let i = 0; i < optionElements.length; i++) {
+      const element = optionElements[i]!;
+
       const value = element.getAttribute('value') ?? element.textContent?.trim();
 
       if (value === undefined)
         throw new Error('Option element must have a value or a text content!');
 
       element.setAttribute('value', value);
-      optionItems[value] = { element, isDefault: element.hasAttribute('selected') };
+
+      const isDefault = element.hasAttribute('selected') && !isDefaultSelected;
+
+      optionItems.push({ element, value });
+
+      if (isDefault) {
+        isDefaultSelected = true;
+        this.defaultOptionIndex = i;
+      }
     }
 
     return optionItems;
   }
 
   private setupNativeSelect() {
-    let isDefaultSelected = false;
-
     const nativeSelect = document.createElement('select');
 
     const selectName = this.rootElement.getAttribute('name');
@@ -133,17 +195,15 @@ export class Selectron {
 
     const optionsFragment = document.createDocumentFragment();
 
-    for (const optionValue of Object.keys(this.optionItems)) {
-      const isDefault = this.optionItems[optionValue]?.isDefault;
-
+    for (let i = 0; i < this.optionItems.length; i++) {
+      const { value: optionValue } = this.optionItems[i]!;
       const optionElement = document.createElement('option');
 
       optionElement.value = optionValue;
       optionElement.textContent = optionValue;
 
-      if (isDefault && !isDefaultSelected) {
+      if (i === this.defaultOptionIndex) {
         optionElement.setAttribute('selected', '');
-        isDefaultSelected = true;
       }
 
       optionsFragment.appendChild(optionElement);
@@ -179,11 +239,12 @@ export class Selectron {
     this.viewport.role = 'presentation';
 
     // Options
-    for (const optionItem of Object.values(this.optionItems)) {
+    for (let i = 0; i < this.optionItems.length; i++) {
+      const optionItem = this.optionItems[i]!;
       optionItem.element.role = 'option';
       optionItem.element.tabIndex = -1;
-      optionItem.element.ariaSelected = optionItem.isDefault ? 'true' : 'false';
-      optionItem.element.dataset.selected = optionItem.isDefault ? 'true' : 'false';
+      optionItem.element.ariaSelected = i === this.defaultOptionIndex ? 'true' : 'false';
+      optionItem.element.dataset.selected = i === this.defaultOptionIndex ? 'true' : 'false';
 
       const svgs = optionItem.element.querySelectorAll('svg');
 
@@ -192,29 +253,37 @@ export class Selectron {
       });
 
       optionItem.element.addEventListener('click', () => {
-        this.selectOption(optionItem.element);
+        this.selectOption(i);
+      });
+
+      optionItem.element.addEventListener('mouseenter', () => {
+        this.highlightOption(i);
       });
     }
   }
 
   private removeSelection() {
-    for (const [value, optionItem] of Object.entries(this.optionItems)) {
+    for (const { value, element: optionElement } of this.optionItems) {
       if (value === '') {
-        this.triggerValue.textContent = optionItem.element.textContent;
-        optionItem.element.dataset.selected = 'false';
-        optionItem.element.ariaSelected = 'false';
+        this.triggerValue.textContent = optionElement.textContent;
+        optionElement.dataset.selected = 'false';
+        optionElement.ariaSelected = 'false';
         continue;
       }
 
-      optionItem.element.ariaSelected = 'false';
-      optionItem.element.dataset.selected = 'false';
-      optionItem.element.classList.remove('selected');
+      optionElement.ariaSelected = 'false';
+      optionElement.dataset.selected = 'false';
+      optionElement.classList.remove('selected');
     }
     this.nativeSelect.value = '';
   }
 
-  private selectOption(optionElement: HTMLElement) {
+  private selectOption(optionIndex: number) {
+    const optionElement = this.optionItems[optionIndex]!.element;
+
     this.removeSelection();
+
+    this.highlightOption(optionIndex, 'hover');
 
     const value = optionElement.getAttribute('value');
 
@@ -233,24 +302,37 @@ export class Selectron {
     this.closeModal();
   }
 
+  private highlightOption(optionIndex: number, type: 'focus' | 'hover' = 'hover') {
+    const optionElement = this.optionItems[optionIndex]!.element;
+
+    if (this.highlightedOptionIndex !== undefined) {
+      const prevHighlightedOption = this.optionItems[this.highlightedOptionIndex]!;
+
+      prevHighlightedOption.element.classList.remove('focused', 'hovered');
+      prevHighlightedOption.element.removeAttribute('data-focused');
+      prevHighlightedOption.element.removeAttribute('data-hovered');
+      prevHighlightedOption.element.blur();
+    }
+
+    if (type === 'focus') {
+      optionElement.classList.add('focused');
+      optionElement.setAttribute('data-focused', 'true');
+      optionElement.focus();
+    }
+
+    if (type === 'hover') {
+      optionElement.classList.add('hovered');
+      optionElement.setAttribute('data-hovered', 'true');
+    }
+
+    this.highlightedOptionIndex = optionIndex;
+  }
+
   private closeModal() {
     this.fragment.appendChild(this.content);
     this.isOpen = false;
     document.body.removeEventListener('click', this.clickOutsideCallback);
-  }
-
-  private clickOutsideCallback(e: MouseEvent) {
-    const target = e.target as Node;
-
-    if (
-      this.content.isSameNode(target) ||
-      this.content.contains(target) ||
-      this.rootElement.isSameNode(target) ||
-      this.rootElement.contains(target)
-    )
-      return;
-
-    this.closeModal();
+    document.removeEventListener('keydown', this.keyboardNavigationCallback);
   }
 
   private openModal() {
@@ -259,6 +341,7 @@ export class Selectron {
     this.setModalPosition();
 
     document.body.addEventListener('click', this.clickOutsideCallback);
+    document.addEventListener('keydown', this.keyboardNavigationCallback);
   }
 
   private setElementRects() {
@@ -309,7 +392,7 @@ export class Selectron {
     }
   }
 
-  private setupEventListeners() {
+  private scrollAwareness() {
     const onScroll = () => {
       if (!this.isOpen) return;
       this.setModalPosition();
