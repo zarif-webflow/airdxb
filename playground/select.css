@@ -17,7 +17,6 @@
   background-color: var(--swatch--light-bg);
   min-width: 200px;
   max-width: max-content;
-  transform: translateY(4px);
   border-radius: 1rem;
   padding: 4px;
   display: grid;
@@ -28,18 +27,26 @@
 
 .select-option {
   padding-block: 4px;
-  padding-inline: 12px 15px;
+  padding-inline: 8px 15px;
   color: #464646;
   border-radius: 0.675rem;
-  transition: 0.2s all ease;
+  transition: 0.1s all ease;
   display: grid;
   grid-template-columns: 1rem auto;
   column-gap: 0.5rem;
   align-items: center;
 }
 
-.select-option:hover {
+.select-option:focus {
+  outline: none;
+}
+
+.select-option.focused,
+.select-option.hovered {
   background-color: rgb(228, 228, 228);
+}
+.select-option.focused {
+  box-shadow: inset 0px 0px 0px 2px rgb(155, 155, 155);
 }
 
 .select-option .select-icon {

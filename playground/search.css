@@ -9,16 +9,9 @@
 
 .search-result-container {
   position: absolute;
-  top: 100%;
-  left: -0.625rem;
   background-color: var(--swatch--light-bg);
-  width: 100%;
   border-radius: 1.5rem;
   box-shadow: 1px 0px 10px 0px rgba(0, 0, 0, 0.15);
-}
-
-.search-result-container.is--hidden {
-  display: none;
 }
 
 .search-result-list {

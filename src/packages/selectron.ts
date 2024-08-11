@@ -88,8 +88,6 @@ export class Selectron {
     };
 
     this.keyboardNavigationCallback = (e: KeyboardEvent) => {
-      console.log(e.key);
-
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
 

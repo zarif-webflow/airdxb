@@ -1,5 +1,5 @@
 import { fetchAddresses } from '@/fetchers/address';
-import { assertValue } from '@/utils/util';
+import { assertValue, setStyle } from '@/utils/util';
 
 const initSearchAddress = () => {
   /*
@@ -27,12 +27,89 @@ const initSearchAddress = () => {
   /*
    * UI States
    */
+  const modalFragment = document.createDocumentFragment();
   let resultItems: HTMLLIElement[] = [];
   let highlightedIndex = 0;
+  let position: 'top' | 'bottom' | undefined = undefined;
+  let isModalOpen = false;
+
+  modalFragment.appendChild(addressResultContainer);
 
   /*
    * State changer callbacks
    */
+
+  const setModalPosition = () => {
+    const { height: contentHeight } = addressResultContainer.getBoundingClientRect();
+    const {
+      height: triggerHeight,
+      top: triggerTop,
+      left: triggerLeft,
+      width: triggerWidth,
+    } = addressInput.getBoundingClientRect();
+
+    const triggerOffsetTop = triggerTop + globalThis.scrollY;
+    const contentOffsetTop = triggerOffsetTop + triggerHeight;
+    const contentOffsetLeft = triggerLeft + globalThis.scrollX;
+
+    const contentWindowTop = triggerTop + triggerHeight + contentHeight + 80;
+
+    position = window.innerHeight > contentWindowTop ? 'bottom' : 'top';
+
+    if (position === 'bottom') {
+      setStyle(addressResultContainer, {
+        position: 'absolute',
+        top: `${contentOffsetTop}px`,
+        left: `${contentOffsetLeft}px`,
+        width: `${triggerWidth}px`,
+      });
+    } else {
+      setStyle(addressResultContainer, {
+        position: 'absolute',
+        left: `${contentOffsetLeft}px`,
+        top: `${triggerOffsetTop - contentHeight}px`,
+        width: `${triggerWidth}px`,
+      });
+    }
+  };
+
+  const scrollAwareness = () => {
+    const onScroll = () => {
+      if (!isModalOpen) return;
+      setModalPosition();
+    };
+
+    const scrollObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            window.addEventListener('scroll', onScroll);
+            return;
+          }
+          window.removeEventListener('scroll', onScroll);
+        }
+      },
+      { root: null, threshold: 0 }
+    );
+
+    scrollObserver.observe(addressInput);
+  };
+
+  const resizeAwareness = () => {
+    const onResize = () => {
+      if (!isModalOpen) return;
+      setModalPosition();
+    };
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const _ of entries) {
+        onResize();
+      }
+    });
+
+    resizeObserver.observe(document.body);
+  };
+
   const setResultItems = (items: HTMLLIElement[]) => {
     resultItems = items;
   };
@@ -67,7 +144,7 @@ const initSearchAddress = () => {
   };
 
   const closeResultModal = () => {
-    addressResultContainer.classList.add('is--hidden');
+    modalFragment.appendChild(addressResultContainer);
 
     if (clickOutsideCallback !== undefined) {
       document.body.removeEventListener('mousedown', clickOutsideCallback);
@@ -76,9 +153,14 @@ const initSearchAddress = () => {
     if (keyboardNavigationCallback !== undefined) {
       document.removeEventListener('keydown', keyboardNavigationCallback);
     }
+
+    isModalOpen = false;
   };
 
   const setupEventListeners = () => {
+    scrollAwareness();
+    resizeAwareness();
+
     /*
      * Click and hover effects
      */
@@ -104,7 +186,9 @@ const initSearchAddress = () => {
     }
 
     clickOutsideCallback = (e: MouseEvent) => {
-      if ((e.target as HTMLElement).closest('[data-address-container]')) return;
+      const target = e.target as HTMLElement;
+      if (target.closest('[data-address-container]') || target.closest('[data-address-result]'))
+        return;
 
       closeResultModal();
     };
@@ -120,7 +204,7 @@ const initSearchAddress = () => {
     }
 
     keyboardNavigationCallback = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') {
+      if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         addressInput.blur();
         selectResultItem(highlightedIndex);
@@ -141,7 +225,9 @@ const initSearchAddress = () => {
   };
 
   const openResultModal = () => {
-    addressResultContainer.classList.remove('is--hidden');
+    document.body.appendChild(addressResultContainer);
+    setModalPosition();
+    isModalOpen = true;
   };
 
   const renderAddressList = (addresses: string[]) => {
