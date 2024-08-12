@@ -9,7 +9,6 @@ import {
   PointElement,
   Tooltip,
 } from 'chart.js';
-import { animate } from 'motion';
 
 import { LINE_CHART_DEFAULT_COLOR } from '@/utils/constants';
 import { data } from '@/utils/static-data';
@@ -51,6 +50,17 @@ const initChart = () => {
     window.getComputedStyle(document.documentElement).getPropertyValue('--chart-text-secondary') ??
     LINE_CHART_DEFAULT_COLOR;
 
+  const chartParent = assertValue(
+    canvasElement.closest<HTMLElement>('[data-chart-parent]'),
+    'Canvas parent element([data-chart-parent]) was not found!'
+  );
+  const animationDuration =
+    (Number.parseFloat(chartParent?.dataset.animationDuration || '') || 1) * 1000;
+
+  const animationDelay = (Number.parseFloat(chartParent?.dataset.animationDelay || '') || 0) * 1000;
+  const viewportThreshold = Number.parseFloat(chartParent?.dataset.viewportThreshold || '') ?? 0.8;
+  const viewportMargin = Number.parseFloat(chartParent?.dataset.viewportMargin || '') ?? 0;
+
   const stepSize = 4;
   const values = data.map((item) => item.value);
   const months = data.map((item) => item.month);
@@ -91,6 +101,9 @@ const initChart = () => {
     },
 
     options: {
+      animation: {
+        duration: animationDuration,
+      },
       maintainAspectRatio: false,
       scales: {
         x: {
@@ -158,24 +171,25 @@ const initChart = () => {
       for (const entry of entries) {
         if (!entry.isIntersecting) return;
 
-        animate(canvasElement, { opacity: [0, 1], y: [20, 0] }, { duration: 0.5 });
+        setInterval(() => {
+          let graph = new Chart(canvasElement, config);
+          document.fonts.ready.then(() => {
+            graph.destroy();
+            graph = new Chart(canvasElement, config);
+          });
 
-        let graph = new Chart(canvasElement, config);
-        document.fonts.ready.then(() => {
-          graph.destroy();
-          graph = new Chart(canvasElement, config);
-        });
-
-        interSectionObserver.unobserve(entry.target);
+          interSectionObserver.unobserve(entry.target);
+        }, animationDelay);
       }
     },
     {
       root: null,
-      threshold: 0.8,
+      threshold: viewportThreshold,
+      rootMargin: `${viewportMargin}px`,
     }
   );
 
-  interSectionObserver.observe(canvasElement);
+  interSectionObserver.observe(chartParent);
 };
 
 initChart();
