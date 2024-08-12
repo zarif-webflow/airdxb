@@ -9,6 +9,7 @@ import {
   PointElement,
   Tooltip,
 } from 'chart.js';
+import { animate } from 'motion';
 
 import { LINE_CHART_DEFAULT_COLOR } from '@/utils/constants';
 import { data } from '@/utils/static-data';
@@ -132,7 +133,9 @@ const initChart = () => {
         tooltip: {
           callbacks: {
             label: (data) => {
-              const text = `${(Number.parseFloat(String(data.raw)) * 1000).toLocaleString() || 'N/A'}`;
+              const text = `${
+                (Number.parseFloat(String(data.raw)) * 1000).toLocaleString() || 'N/A'
+              }`;
               return text.length >= 10 ? text : text.padEnd(10);
             },
           },
@@ -150,12 +153,29 @@ const initChart = () => {
   Chart.defaults.font.weight = Number.parseInt(fontWeight);
   Chart.defaults.font.size = Number.parseFloat(fontSize);
 
-  let graph = new Chart(canvasElement, config);
+  const interSectionObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) return;
 
-  document.fonts.ready.then(() => {
-    graph.destroy();
-    graph = new Chart(canvasElement, config);
-  });
+        animate(canvasElement, { opacity: [0, 1], y: [20, 0] }, { duration: 0.5 });
+
+        let graph = new Chart(canvasElement, config);
+        document.fonts.ready.then(() => {
+          graph.destroy();
+          graph = new Chart(canvasElement, config);
+        });
+
+        interSectionObserver.unobserve(entry.target);
+      }
+    },
+    {
+      root: null,
+      threshold: 0.8,
+    }
+  );
+
+  interSectionObserver.observe(canvasElement);
 };
 
 initChart();
