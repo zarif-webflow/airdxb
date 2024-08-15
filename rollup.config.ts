@@ -14,6 +14,7 @@ export default defineConfig({
     'multi-step-form': './src/features/multi-step-form.ts',
     'search-address': './src/features/search-address.ts',
     'trigger-reveals': './src/features/trigger-reveals.ts',
+    'bar-charts': './src/features/bar-charts.ts',
   },
   output: {
     format: 'module',

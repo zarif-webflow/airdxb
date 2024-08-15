@@ -22,6 +22,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
+  --bar-fill: #1e56aa;
+  --bar-grid: #f0f0f0;
+  --bar-border: #747474;
   --chart-line: #0741ff;
   --chart-border: #cccccc;
   --chart-border-middle: #e49a45;
@@ -77,4 +80,9 @@ h3 {
 
 .calculator-form {
   overflow-x: clip;
+}
+
+[data-bar-parent] {
+  font-size: 14px;
+  font-weight: 500;
 }
