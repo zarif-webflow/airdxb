@@ -1,1 +1,1 @@
-export const LINE_CHART_DEFAULT_COLOR = '#000';
+export const LINE_CHART_DEFAULT_COLOR = '#000000';

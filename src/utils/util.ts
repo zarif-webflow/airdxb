@@ -73,3 +73,11 @@ export const setStyle = <TElement extends HTMLElement = HTMLElement>(
     },
   };
 };
+
+export const parseFloatFallback = (inputStr: string | undefined, fallbackValue: number) => {
+  if (inputStr === undefined) return fallbackValue;
+
+  const parsedValue = Number.parseFloat(inputStr);
+
+  return Number.isNaN(parsedValue) ? fallbackValue : parsedValue;
+};

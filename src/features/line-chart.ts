@@ -1,28 +1,9 @@
-import {
-  CategoryScale,
-  Chart,
-  type ChartConfiguration,
-  Filler,
-  LinearScale,
-  LineController,
-  LineElement,
-  PointElement,
-  Tooltip,
-} from 'chart.js';
+import { type ChartConfiguration } from 'chart.js';
+import { Chart } from '@/charts/chartjs';
 
 import { LINE_CHART_DEFAULT_COLOR } from '@/utils/constants';
 import { data } from '@/utils/static-data';
-import { assertValue, hexToRgb } from '@/utils/util';
-
-Chart.register(
-  Tooltip,
-  LineController,
-  LineElement,
-  PointElement,
-  CategoryScale,
-  LinearScale,
-  Filler
-);
+import { assertValue, hexToRgb, parseFloatFallback } from '@/utils/util';
 
 const initChart = () => {
   const canvasElement = assertValue(
@@ -35,31 +16,29 @@ const initChart = () => {
   const { fontFamily, fontWeight, fontSize } = computedStyles;
 
   const colorLine =
-    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-line') ??
+    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-line') ||
     LINE_CHART_DEFAULT_COLOR;
   const colorBorder =
-    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-border') ??
+    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-border') ||
     LINE_CHART_DEFAULT_COLOR;
   const colorBorderMiddle =
-    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-border-middle') ??
+    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-border-middle') ||
     LINE_CHART_DEFAULT_COLOR;
   const colorText =
-    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-text') ??
+    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-text') ||
     LINE_CHART_DEFAULT_COLOR;
   const colorTextSecondary =
-    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-text-secondary') ??
+    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-text-secondary') ||
     LINE_CHART_DEFAULT_COLOR;
 
   const chartParent = assertValue(
     canvasElement.closest<HTMLElement>('[data-chart-parent]'),
     'Canvas parent element([data-chart-parent]) was not found!'
   );
-  const animationDuration =
-    (Number.parseFloat(chartParent?.dataset.animationDuration || '') || 1) * 1000;
-
-  const animationDelay = (Number.parseFloat(chartParent?.dataset.animationDelay || '') || 0) * 1000;
-  const viewportThreshold = Number.parseFloat(chartParent?.dataset.viewportThreshold || '') ?? 0.8;
-  const viewportMargin = Number.parseFloat(chartParent?.dataset.viewportMargin || '') ?? 0;
+  const animationDuration = parseFloatFallback(chartParent?.dataset.animationDuration, 1) * 1000;
+  const animationDelay = parseFloatFallback(chartParent?.dataset.animationDelay, 0) * 1000;
+  const viewportThreshold = parseFloatFallback(chartParent?.dataset.viewportThreshold, 0.8);
+  const viewportMargin = parseFloatFallback(chartParent?.dataset.viewportMargin, 0);
 
   const stepSize = 4;
   const values = data.map((item) => item.value);
@@ -162,24 +141,25 @@ const initChart = () => {
     },
   };
 
-  Chart.defaults.font.family = fontFamily;
-  Chart.defaults.font.weight = Number.parseInt(fontWeight);
-  Chart.defaults.font.size = Number.parseFloat(fontSize);
-
   const interSectionObserver = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
         if (!entry.isIntersecting) return;
 
-        setInterval(() => {
+        setTimeout(() => {
+          Chart.defaults.font.family = fontFamily;
+          Chart.defaults.font.size = Number.parseFloat(fontSize.replace('px', ''));
+          Chart.defaults.font.weight = Number.parseFloat(fontWeight);
+
           let graph = new Chart(canvasElement, config);
+
           document.fonts.ready.then(() => {
             graph.destroy();
             graph = new Chart(canvasElement, config);
           });
-
-          interSectionObserver.unobserve(entry.target);
         }, animationDelay);
+
+        interSectionObserver.unobserve(chartParent);
       }
     },
     {
