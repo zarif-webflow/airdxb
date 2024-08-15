@@ -182,7 +182,13 @@ export class Selectron {
     const selectName = this.rootElement.getAttribute('data-name');
     selectName && (nativeSelect.name = selectName);
 
-    nativeSelect.setAttribute('inert', '');
+    const dataAria = this.rootElement.getAttribute('data-aria');
+
+    if (dataAria === 'inert' || !this.rootElement.hasAttribute('data-aria'))
+      nativeSelect.setAttribute('inert', '');
+
+    if (dataAria === 'hidden') nativeSelect.setAttribute('aria-hidden', 'true');
+
     nativeSelect.tabIndex = -1;
 
     if (this.rootElement.hasAttribute('data-required')) {
