@@ -1,15 +1,6 @@
-import { bartChart } from '@/charts/bar-chart';
+import { barChart } from '@/charts/bar-chart';
 import { BarChartData } from '@/types/bar-chart';
 import { assertValue } from '@/utils/util';
-
-const volumeBarElement = assertValue(
-  document.querySelector<HTMLCanvasElement>('[data-volume-barchart]'),
-  'Canvas element([data-volume-barchart]) was not found!'
-);
-const valueBarElement = assertValue(
-  document.querySelector<HTMLCanvasElement>('[data-value-barchart]'),
-  'Canvas element([data-value-barchart]) was not found!'
-);
 
 const volumeBarData: BarChartData = [
   { label: 'Jumeirah Village Circle', value: 1594 },
@@ -42,40 +33,80 @@ const valueBarData: BarChartData = [
   },
 ];
 
-bartChart({
-  canvasElement: volumeBarElement,
-  data: volumeBarData,
-  xTickCallback: (ctx) => {
-    if (ctx === 0) return '0.0';
-    if (typeof ctx === 'number') {
-      return `${(ctx / 1000).toFixed(1)}K`;
-    }
-    return ctx.toString();
-  },
-  tooltipLabelCallback: (data) => {
-    if (data.raw === 0) return '0.0';
-    if (typeof data.raw === 'number') {
-      return `${(data.raw / 1000).toFixed(1)}K`;
-    }
-    return data.toString();
-  },
-});
+const initBarCharts = () => {
+  const volumeBarElement = assertValue(
+    document.querySelector<HTMLCanvasElement>('[data-volume-barchart]'),
+    'Canvas element([data-volume-barchart]) was not found!'
+  );
+  const valueBarElement = assertValue(
+    document.querySelector<HTMLCanvasElement>('[data-value-barchart]'),
+    'Canvas element([data-value-barchart]) was not found!'
+  );
 
-bartChart({
-  canvasElement: valueBarElement,
-  data: valueBarData,
-  xTickCallback: (ctx) => {
-    if (ctx === 0) return '0.0';
-    if (typeof ctx === 'number') {
-      return `${ctx.toLocaleString()}M`;
-    }
-    return ctx.toString();
-  },
-  tooltipLabelCallback: (data) => {
-    if (data.raw === 0) return '0.0';
-    if (typeof data.raw === 'number') {
-      return `${data.raw.toLocaleString()}M`;
-    }
-    return data.toString();
-  },
-});
+  const barTabVolumeTrigger = document.querySelector<HTMLElement>('[data-bar-trigger="volume"]');
+  const barTabValueTrigger = document.querySelector<HTMLElement>('[data-bar-trigger="value"]');
+
+  if (!barTabVolumeTrigger) {
+    console.error(`[data-bar-trigger="volume"] wasn't found!`);
+  }
+
+  if (!barTabValueTrigger) {
+    console.error(`[data-bar-trigger="value"] wasn't found!`);
+  }
+
+  barChart({
+    canvasElement: volumeBarElement,
+    data: volumeBarData,
+    xTickCallback: (ctx) => {
+      if (ctx === 0) return '0.0';
+      if (typeof ctx === 'number') {
+        return `${(ctx / 1000).toFixed(1)}K`;
+      }
+      return ctx.toString();
+    },
+    tooltipLabelCallback: (data) => {
+      if (data.raw === 0) return '0.0';
+      if (typeof data.raw === 'number') {
+        return `${(data.raw / 1000).toFixed(1)}K`;
+      }
+      return data.toString();
+    },
+    onChartInit: (chart) => {
+      barTabVolumeTrigger?.addEventListener('click', () => {
+        if (barTabVolumeTrigger.classList.contains('w--current')) return;
+
+        chart.reset();
+        chart.update();
+      });
+    },
+  });
+
+  barChart({
+    canvasElement: valueBarElement,
+    data: valueBarData,
+    xTickCallback: (ctx) => {
+      if (ctx === 0) return '0.0';
+      if (typeof ctx === 'number') {
+        return `${ctx.toLocaleString()}M`;
+      }
+      return ctx.toString();
+    },
+    tooltipLabelCallback: (data) => {
+      if (data.raw === 0) return '0.0';
+      if (typeof data.raw === 'number') {
+        return `${data.raw.toLocaleString()}M`;
+      }
+      return data.toString();
+    },
+    onChartInit: (chart) => {
+      barTabValueTrigger?.addEventListener('click', () => {
+        if (barTabValueTrigger.classList.contains('w--current')) return;
+
+        chart.reset();
+        chart.update();
+      });
+    },
+  });
+};
+
+initBarCharts();

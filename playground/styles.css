@@ -24,7 +24,8 @@ body {
 
   --bar-fill: #1e56aa;
   --bar-grid: #f0f0f0;
-  --bar-border: #747474;
+  --bar-border: #f0f0f0;
+  --bar-radius: 16px;
   --chart-line: #0741ff;
   --chart-border: #cccccc;
   --chart-border-middle: #e49a45;

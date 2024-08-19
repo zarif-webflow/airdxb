@@ -5,18 +5,20 @@ import { ChartConfiguration, Scale, TooltipItem } from 'chart.js';
 
 const BAR_CHART_DEFAULT_COLOR = '#000000';
 
-export const bartChart = ({
+export const barChart = ({
   canvasElement,
   data,
   xTickCallback,
   yTickCallback,
   tooltipLabelCallback,
+  onChartInit,
 }: {
   canvasElement: HTMLCanvasElement;
   data: BarChartData;
   xTickCallback?: (this: Scale, ctx: string | number) => string;
   yTickCallback?: (this: Scale, ctx: string | number) => string;
   tooltipLabelCallback?: (data: TooltipItem<'bar'>) => string;
+  onChartInit?: (chart: Chart<'bar', (number | [number, number] | null)[], unknown>) => void;
 }) => {
   const computedStyles = window.getComputedStyle(canvasElement);
 
@@ -31,6 +33,12 @@ export const bartChart = ({
   const barBorderColor =
     window.getComputedStyle(document.documentElement).getPropertyValue('--bar-border') ||
     BAR_CHART_DEFAULT_COLOR;
+  const barRadiusCssVar = window
+    .getComputedStyle(document.documentElement)
+    .getPropertyValue('--bar-radius');
+
+  const barRadius =
+    barRadiusCssVar !== '' ? Number.parseFloat(barRadiusCssVar.replace('px', '')) : 16;
 
   const barParent = assertValue(
     canvasElement.closest<HTMLElement>('[data-bar-parent]'),
@@ -43,7 +51,13 @@ export const bartChart = ({
 
   const config: ChartConfiguration<'bar', (number | [number, number] | null)[], unknown> = {
     data: {
-      datasets: [{ data: data.map((item) => item.value), backgroundColor: barFillColor }],
+      datasets: [
+        {
+          data: data.map((item) => item.value),
+          backgroundColor: barFillColor,
+          borderRadius: barRadius,
+        },
+      ],
       labels: data.map((item) => item.label),
     },
     type: 'bar',
@@ -99,11 +113,9 @@ export const bartChart = ({
           Chart.defaults.font.size = Number.parseFloat(fontSize.replace('px', ''));
           Chart.defaults.font.weight = Number.parseFloat(fontWeight);
 
-          let graph = new Chart(canvasElement, config);
-
           document.fonts.ready.then(() => {
-            graph.destroy();
-            graph = new Chart(canvasElement, config);
+            const barChart = new Chart(canvasElement, config);
+            onChartInit?.(barChart);
           });
         }, animationDelay);
 
