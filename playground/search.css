@@ -8,7 +8,6 @@
 }
 
 .search-result-container {
-  position: absolute;
   background-color: var(--swatch--light-bg);
   border-radius: 1.5rem;
   box-shadow: 1px 0px 10px 0px rgba(0, 0, 0, 0.15);
@@ -54,4 +53,10 @@
 
 [data-address-result]:not([data-initialized]) {
   visibility: hidden;
+}
+
+[data-address-result] {
+  position: absolute;
+  left: 0;
+  top: 0;
 }

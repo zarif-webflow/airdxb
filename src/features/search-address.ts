@@ -1,5 +1,7 @@
 import { fetchAddresses } from '@/fetchers/address';
 import { assertValue, setStyle } from '@/utils/util';
+import { autoUpdate, computePosition, flip, offset, shift, size } from '@floating-ui/dom';
+import { trackInteractOutside } from '@zag-js/interact-outside';
 
 const initSearchAddress = () => {
   /*
@@ -34,6 +36,9 @@ const initSearchAddress = () => {
   let isModalOpen = false;
   const optionListId = addressResultList.id || 'address-result-options';
 
+  let cleanupAutoUpdate: (() => void) | undefined = undefined;
+  let cleanupOutsideInteraction: (() => void) | undefined = undefined;
+
   modalFragment.appendChild(addressResultContainer);
   addressResultContainer.dataset.initialized = '';
 
@@ -55,76 +60,21 @@ const initSearchAddress = () => {
   };
 
   const setModalPosition = () => {
-    const { height: contentHeight } = addressResultContainer.getBoundingClientRect();
-    const {
-      height: triggerHeight,
-      top: triggerTop,
-      left: triggerLeft,
-      width: triggerWidth,
-    } = addressInput.getBoundingClientRect();
-
-    const triggerOffsetTop = triggerTop + globalThis.scrollY;
-    const contentOffsetTop = triggerOffsetTop + triggerHeight;
-    const contentOffsetLeft = triggerLeft + globalThis.scrollX;
-
-    const contentWindowTop = triggerTop + triggerHeight + contentHeight + 80;
-
-    position = window.innerHeight > contentWindowTop ? 'bottom' : 'top';
-
-    addressResultContainer.setAttribute('data-position', position);
-
-    if (position === 'bottom') {
-      setStyle(addressResultContainer, {
-        position: 'absolute',
-        top: `${contentOffsetTop}px`,
-        left: `${contentOffsetLeft}px`,
-        width: `${triggerWidth}px`,
-      });
-    } else {
-      setStyle(addressResultContainer, {
-        position: 'absolute',
-        left: `${contentOffsetLeft}px`,
-        top: `${triggerOffsetTop - contentHeight}px`,
-        width: `${triggerWidth}px`,
-      });
-    }
-  };
-
-  const scrollAwareness = () => {
-    const onScroll = () => {
-      if (!isModalOpen) return;
-      setModalPosition();
-    };
-
-    const scrollObserver = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            window.addEventListener('scroll', onScroll);
-            return;
-          }
-          window.removeEventListener('scroll', onScroll);
-        }
-      },
-      { root: null, threshold: 0 }
-    );
-
-    scrollObserver.observe(addressInput);
-  };
-
-  const resizeAwareness = () => {
-    const onResize = () => {
-      if (!isModalOpen) return;
-      setModalPosition();
-    };
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const _ of entries) {
-        onResize();
-      }
+    computePosition(addressInput, addressResultContainer, {
+      placement: 'bottom-start',
+      middleware: [
+        offset(),
+        flip(),
+        shift(),
+        size({
+          apply: ({ rects }) => {
+            setStyle(addressResultContainer, { width: `${rects.reference.width}px` });
+          },
+        }),
+      ],
+    }).then(({ x, y }) => {
+      setStyle(addressResultContainer, { left: `${x}px`, top: `${y}px` });
     });
-
-    resizeObserver.observe(document.body);
   };
 
   const setResultItems = (items: HTMLLIElement[]) => {
@@ -150,7 +100,6 @@ const initSearchAddress = () => {
   };
 
   let keyboardNavigationCallback: ((e: KeyboardEvent) => void) | undefined = undefined;
-  let clickOutsideCallback: ((e: MouseEvent) => void) | undefined = undefined;
 
   const selectResultItem = (index: number) => {
     const selectedItem = resultItems[index];
@@ -172,15 +121,14 @@ const initSearchAddress = () => {
     modalFragment.appendChild(addressResultContainer);
     addressInput.removeAttribute('aria-activedescendant');
 
-    if (clickOutsideCallback !== undefined) {
-      document.body.removeEventListener('mousedown', clickOutsideCallback);
-    }
-
     if (keyboardNavigationCallback !== undefined) {
       document.removeEventListener('keydown', keyboardNavigationCallback);
     }
 
     isModalOpen = false;
+
+    cleanupAutoUpdate?.();
+    cleanupOutsideInteraction?.();
   };
 
   const setupEventListeners = () => {
@@ -203,24 +151,6 @@ const initSearchAddress = () => {
         closeResultModal();
       });
     }
-
-    /*
-     * Handle outside click
-     */
-
-    if (clickOutsideCallback !== undefined) {
-      document.body.removeEventListener('mousedown', clickOutsideCallback);
-    }
-
-    clickOutsideCallback = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.closest('[data-address-container]') || target.closest('[data-address-result]'))
-        return;
-
-      closeResultModal();
-    };
-
-    document.body.addEventListener('mousedown', clickOutsideCallback);
 
     /*
      * Keyboard navigation
@@ -260,6 +190,13 @@ const initSearchAddress = () => {
     document.body.appendChild(addressResultContainer);
     setModalPosition();
     isModalOpen = true;
+
+    cleanupAutoUpdate = autoUpdate(addressInput, addressResultContainer, setModalPosition);
+    cleanupOutsideInteraction = trackInteractOutside(addressResultContainer, {
+      onPointerDownOutside: closeResultModal,
+      onInteractOutside: closeResultModal,
+      onFocusOutside: closeResultModal,
+    });
   };
 
   const renderAddressList = (addresses: string[]) => {
@@ -341,8 +278,6 @@ const initSearchAddress = () => {
    */
 
   setupInitialAttributes();
-  scrollAwareness();
-  resizeAwareness();
   renderAddressList([]);
 };
 

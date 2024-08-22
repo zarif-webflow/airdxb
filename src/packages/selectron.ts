@@ -1,132 +1,46 @@
 import { getAssertedHtmlElement, getAssertedHtmlElements, setStyle } from '@/utils/util';
+import { autoUpdate, computePosition, flip, offset, shift, size } from '@floating-ui/dom';
+import { trackInteractOutside } from '@zag-js/interact-outside';
 
 const generatedUids: Set<string> = new Set();
 
-export class Selectron {
-  private rootElement: HTMLElement;
-  private nativeSelect: HTMLSelectElement;
-  private trigger: HTMLElement;
-  private triggerValue: HTMLElement;
-  private content: HTMLElement;
-  private viewport: HTMLElement;
-  private fragment: DocumentFragment;
-  private optionItems: { element: HTMLElement; value: string }[];
-  private elementIds: {
+const generateId = () => {
+  while (true) {
+    const uid = Math.random().toString(36).substring(2, 8);
+    if (generatedUids.has(uid)) continue;
+    return uid;
+  }
+};
+
+export const setupSelectron = (rootElement: HTMLElement) => {
+  const fragment = document.createDocumentFragment();
+  const trigger = getAssertedHtmlElement('[data-st-trigger]', rootElement);
+  const triggerValue = getAssertedHtmlElement('[data-st-value]', trigger);
+  const content = getAssertedHtmlElement('[data-st-content]', rootElement);
+  const viewport = getAssertedHtmlElement('[data-st-viewport]', rootElement);
+
+  let isOpen: boolean = false;
+  let defaultOptionIndex: number | undefined = undefined;
+  let selectedOptionIndex: number | undefined = undefined;
+  let highlightedOptionIndex: number | undefined = undefined;
+
+  let keyboardNavigationCallback: ((e: KeyboardEvent) => void) | undefined = undefined;
+  let cleanupAutoUpdate: (() => void) | undefined = undefined;
+  let cleanupOutsideInteraction: (() => void) | undefined = undefined;
+
+  const elementIds: {
     rootElement: string;
     trigger: string;
     content: string;
     viewport: string;
     id: string;
-  };
-  private defaultOptionIndex: number | undefined = undefined;
-  private selectedOptionIndex: number | undefined = undefined;
-  private highlightedOptionIndex: number | undefined = undefined;
-  private isOpen: boolean = false;
-  private position: 'top' | 'bottom' | undefined = undefined;
-  private triggerRect: {
-    offsetTop: number;
-    offsetLeft: number;
-    width: number;
-    height: number;
-  } = { offsetTop: 0, offsetLeft: 0, width: 0, height: 0 };
-  private contentRect: {
-    offsetTop: number;
-    offsetLeft: number;
-    width: number;
-    height: number;
-  } = { offsetTop: 0, offsetLeft: 0, width: 0, height: 0 };
-  private clickOutsideCallback: (e: MouseEvent) => void;
-  private keyboardNavigationCallback: (e: KeyboardEvent) => void;
-
-  constructor(rootElement: HTMLElement) {
-    this.rootElement = rootElement;
-    this.fragment = document.createDocumentFragment();
-    this.trigger = getAssertedHtmlElement('[data-st-trigger]', this.rootElement);
-    this.triggerValue = getAssertedHtmlElement('[data-st-value]', this.trigger);
-    this.content = getAssertedHtmlElement('[data-st-content]', this.rootElement);
-
-    this.viewport = getAssertedHtmlElement('[data-st-viewport]', this.rootElement);
-    this.elementIds = this.generateElementIds();
-    this.optionItems = this.getOptionItems();
-    this.nativeSelect = this.setupNativeSelect();
-
-    this.setElementRects();
-
-    // remove main listbox from dom
-    this.fragment.appendChild(this.content);
-
-    this.initialSetup();
-
-    this.clickOutsideCallback = (e: MouseEvent) => {
-      const target = e.target as Node;
-
-      if (
-        this.content.isSameNode(target) ||
-        this.content.contains(target) ||
-        this.trigger.isSameNode(target) ||
-        this.trigger.contains(target)
-      )
-        return;
-
-      this.closeModal();
-    };
-
-    this.keyboardNavigationCallback = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-
-        if (this.highlightedOptionIndex === undefined) return;
-
-        this.selectOption(this.highlightedOptionIndex);
-        this.closeModal();
-      }
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-
-        this.highlightOption(
-          this.highlightedOptionIndex === undefined ||
-            this.highlightedOptionIndex >= this.optionItems.length - 1
-            ? 0
-            : this.highlightedOptionIndex + 1,
-          'focus'
-        );
-      }
-      if (e.key === 'ArrowUp') {
-        e.preventDefault();
-
-        this.highlightOption(
-          this.highlightedOptionIndex === undefined || this.highlightedOptionIndex <= 0
-            ? this.optionItems.length - 1
-            : this.highlightedOptionIndex - 1,
-          'focus'
-        );
-      }
-
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        this.closeModal();
-      }
-    };
-
-    this.scrollAwareness();
-    this.resizeAwareness();
-  }
-
-  private generateId() {
-    while (true) {
-      const uid = Math.random().toString(36).substring(2, 8);
-      if (generatedUids.has(uid)) continue;
-      return uid;
-    }
-  }
-
-  private generateElementIds(): typeof this.elementIds {
-    const id = `st--${this.generateId()}`;
-    let rootId = this.rootElement.id;
+  } = (() => {
+    const id = `st--${generateId()}`;
+    let rootId = rootElement.id;
 
     if (rootId === '') {
       rootId = id;
-      this.rootElement.id = rootId;
+      rootElement.id = rootId;
     }
 
     const elementIds = {
@@ -137,18 +51,18 @@ export class Selectron {
       rootElement: rootId,
     };
 
-    this.content.id = elementIds.content;
-    this.trigger.id = elementIds.trigger;
-    this.viewport.id = elementIds.viewport;
+    content.id = elementIds.content;
+    trigger.id = elementIds.trigger;
+    viewport.id = elementIds.viewport;
 
     return elementIds;
-  }
+  })();
 
-  private getOptionItems() {
+  const optionItems = (() => {
     let isDefaultSelected = false;
-    const optionItems: typeof this.optionItems = [];
+    const optionItems: { element: HTMLElement; value: string }[] = [];
 
-    const optionElements = getAssertedHtmlElements('[data-st-option]', this.rootElement);
+    const optionElements = getAssertedHtmlElements('[data-st-option]', rootElement);
 
     for (let i = 0; i < optionElements.length; i++) {
       const element = optionElements[i]!;
@@ -159,7 +73,7 @@ export class Selectron {
         throw new Error('Option element must have a value or a text content!');
 
       element.setAttribute('data-value', value);
-      element.setAttribute('id', `${this.elementIds.id}--option-${i}`);
+      element.setAttribute('id', `${elementIds.id}--option-${i}`);
 
       const isDefault = element.hasAttribute('selected') && !isDefaultSelected;
 
@@ -167,31 +81,31 @@ export class Selectron {
 
       if (isDefault) {
         isDefaultSelected = true;
-        this.defaultOptionIndex = i;
-        this.triggerValue.textContent = element.textContent?.trim() || null;
-        this.triggerValue.setAttribute('data-selected', '');
+        defaultOptionIndex = i;
+        triggerValue.textContent = element.textContent?.trim() || null;
+        triggerValue.setAttribute('data-selected', '');
       }
     }
 
     return optionItems;
-  }
+  })();
 
-  private setupNativeSelect() {
+  const nativeSelect: HTMLSelectElement = (() => {
     const nativeSelect = document.createElement('select');
 
-    const selectName = this.rootElement.getAttribute('data-name');
+    const selectName = rootElement.getAttribute('data-name');
     selectName && (nativeSelect.name = selectName);
 
-    const dataAria = this.rootElement.getAttribute('data-aria');
+    const dataAria = rootElement.getAttribute('data-aria');
 
-    if (dataAria === 'inert' || !this.rootElement.hasAttribute('data-aria'))
+    if (dataAria === 'inert' || !rootElement.hasAttribute('data-aria'))
       nativeSelect.setAttribute('inert', '');
 
     if (dataAria === 'hidden') nativeSelect.setAttribute('aria-hidden', 'true');
 
     nativeSelect.tabIndex = -1;
 
-    if (this.rootElement.hasAttribute('data-required')) {
+    if (rootElement.hasAttribute('data-required')) {
       nativeSelect.required = true;
     }
 
@@ -199,14 +113,14 @@ export class Selectron {
 
     let wasDefaultSelected = false;
 
-    for (let i = 0; i < this.optionItems.length; i++) {
-      const { value: optionValue } = this.optionItems[i]!;
+    for (let i = 0; i < optionItems.length; i++) {
+      const { value: optionValue } = optionItems[i]!;
       const optionElement = document.createElement('option');
 
       optionElement.value = optionValue;
       optionElement.textContent = optionValue;
 
-      if (i === this.defaultOptionIndex && !wasDefaultSelected) {
+      if (i === defaultOptionIndex && !wasDefaultSelected) {
         optionElement.setAttribute('selected', '');
         wasDefaultSelected = true;
       }
@@ -216,7 +130,7 @@ export class Selectron {
 
     nativeSelect.appendChild(optionsFragment);
 
-    setStyle(this.rootElement, { position: 'relative' });
+    setStyle(rootElement, { position: 'relative' });
 
     setStyle(nativeSelect, {
       width: '0px',
@@ -235,123 +149,14 @@ export class Selectron {
 
     !wasDefaultSelected && (nativeSelect.value = '');
 
-    this.rootElement.appendChild(nativeSelect);
+    rootElement.appendChild(nativeSelect);
 
     return nativeSelect;
-  }
+  })();
 
-  private initialSetup() {
-    // Trigger
-    this.trigger.setAttribute('type', 'button');
-    this.trigger.tagName !== 'BUTTON' && (this.trigger.role = 'button');
-    this.trigger.ariaHasPopup = 'listbox';
-    this.trigger.ariaExpanded = 'false';
-    this.trigger.setAttribute('aria-controls', this.elementIds.content);
-
-    this.trigger.addEventListener('click', () => {
-      this.openModal();
-    });
-
-    // Listbox
-    this.content.role = 'listbox';
-    this.content.tabIndex = 0;
-    this.content.setAttribute('aria-labelledby', this.elementIds.trigger);
-    this.content.ariaOrientation = 'vertical';
-
-    if (this.rootElement.hasAttribute('data-required')) {
-      this.content.ariaRequired = 'true';
-    }
-
-    setStyle(this.content, {
-      position: 'absolute',
-      'min-width': `var(--st-content-min-w)`,
-      left: `var(--st-content-left)`,
-      top: `var(--st-content-top)`,
-    });
-
-    // Viewport
-    this.viewport.role = 'presentation';
-
-    // Options
-    for (let i = 0; i < this.optionItems.length; i++) {
-      const optionItem = this.optionItems[i]!;
-      optionItem.element.role = 'option';
-      optionItem.element.tabIndex = -1;
-
-      optionItem.element.ariaSelected = i === this.defaultOptionIndex ? 'true' : 'false';
-      optionItem.element.dataset.selected = i === this.defaultOptionIndex ? 'true' : 'false';
-
-      const svgs = optionItem.element.querySelectorAll('svg');
-
-      svgs.forEach((svg) => {
-        svg.ariaHidden = 'true';
-      });
-
-      optionItem.element.addEventListener('click', () => {
-        this.selectOption(i);
-      });
-
-      optionItem.element.addEventListener('mouseenter', () => {
-        this.highlightOption(i);
-      });
-      optionItem.element.addEventListener('mouseleave', () => {
-        this.dehighlightOptions();
-      });
-    }
-  }
-
-  private removeSelection() {
-    for (const { value, element: optionElement } of this.optionItems) {
-      this.triggerValue.removeAttribute('data-selected');
-
-      if (value === '') {
-        this.triggerValue.textContent = optionElement.textContent;
-        optionElement.dataset.selected = 'false';
-        optionElement.ariaSelected = 'false';
-        continue;
-      }
-
-      optionElement.dataset.selected = 'false';
-      optionElement.ariaSelected = 'false';
-      optionElement.classList.remove('selected');
-    }
-    this.nativeSelect.value = '';
-  }
-
-  private selectOption(optionIndex: number) {
-    const optionElement = this.optionItems[optionIndex]!.element;
-
-    this.removeSelection();
-
-    this.selectedOptionIndex = optionIndex;
-    this.highlightOption(optionIndex, 'hover');
-
-    const value = optionElement.getAttribute('data-value');
-
-    if (value === null) {
-      throw new Error('Option element must have a value!');
-    }
-
-    if (value) {
-      this.nativeSelect.value = value;
-      this.triggerValue.setAttribute('data-selected', '');
-    } else {
-      this.nativeSelect.removeAttribute('value');
-      this.triggerValue.removeAttribute('data-selected');
-    }
-
-    this.triggerValue.textContent = optionElement.textContent?.trim() || null;
-
-    optionElement.ariaSelected = 'true';
-    optionElement.dataset.selected = 'true';
-    optionElement.classList.add('selected');
-
-    this.closeModal();
-  }
-
-  private dehighlightOptions() {
-    if (this.highlightedOptionIndex !== undefined) {
-      const prevHighlightedOption = this.optionItems[this.highlightedOptionIndex]!;
+  const dehighlightOptions = () => {
+    if (highlightedOptionIndex !== undefined) {
+      const prevHighlightedOption = optionItems[highlightedOptionIndex]!;
 
       prevHighlightedOption.element.classList.remove('focused', 'hovered');
       prevHighlightedOption.element.removeAttribute('data-focused');
@@ -359,14 +164,14 @@ export class Selectron {
       prevHighlightedOption.element.blur();
     }
 
-    this.highlightedOptionIndex = undefined;
-    this.content.removeAttribute('aria-activedescendant');
-  }
+    highlightedOptionIndex = undefined;
+    content.removeAttribute('aria-activedescendant');
+  };
 
-  private highlightOption(optionIndex: number, type: 'focus' | 'hover' = 'hover') {
-    const optionElement = this.optionItems[optionIndex]!.element;
+  const highlightOption = (optionIndex: number, type: 'focus' | 'hover' = 'hover') => {
+    const optionElement = optionItems[optionIndex]!.element;
 
-    this.dehighlightOptions();
+    dehighlightOptions();
 
     if (type === 'focus') {
       optionElement.classList.add('focused');
@@ -381,114 +186,212 @@ export class Selectron {
 
     const optionId = optionElement.getAttribute('id');
 
-    if (optionId !== null) this.content.setAttribute('aria-activedescendant', optionId);
+    if (optionId !== null) content.setAttribute('aria-activedescendant', optionId);
 
-    this.highlightedOptionIndex = optionIndex;
-  }
+    highlightedOptionIndex = optionIndex;
+  };
 
-  private closeModal() {
-    this.fragment.appendChild(this.content);
-    this.isOpen = false;
-    this.trigger.ariaExpanded = 'false';
-    document.body.removeEventListener('click', this.clickOutsideCallback);
-    document.removeEventListener('keydown', this.keyboardNavigationCallback);
-  }
+  const removeSelection = () => {
+    for (const { value, element: optionElement } of optionItems) {
+      triggerValue.removeAttribute('data-selected');
 
-  private openModal() {
-    document.body.appendChild(this.content);
-    this.isOpen = true;
-    this.trigger.ariaExpanded = 'true';
-
-    if (this.selectedOptionIndex !== undefined) {
-      this.highlightOption(this.selectedOptionIndex);
-    }
-
-    this.setModalPosition();
-
-    document.body.addEventListener('click', this.clickOutsideCallback);
-    document.addEventListener('keydown', this.keyboardNavigationCallback);
-  }
-
-  private setElementRects() {
-    const triggerRect = this.trigger.getBoundingClientRect();
-    const contentRect = this.content.getBoundingClientRect();
-
-    this.triggerRect.offsetTop = triggerRect.top + globalThis.scrollY;
-    this.triggerRect.offsetLeft = triggerRect.left + globalThis.scrollX;
-    this.triggerRect.width = triggerRect.width;
-    this.triggerRect.height = triggerRect.height;
-
-    this.contentRect.offsetTop = triggerRect.top + globalThis.scrollY + this.triggerRect.height;
-    this.contentRect.offsetLeft = triggerRect.left + globalThis.scrollX;
-    this.contentRect.width = contentRect.width;
-    this.contentRect.height = contentRect.height;
-
-    setStyle(this.content, {
-      '--st-content-min-w': `${Math.max(this.contentRect.width, this.triggerRect.width)}px`,
-      '--st-content-left': `${this.contentRect.offsetLeft}px`,
-    });
-  }
-
-  private setModalPosition() {
-    const { offsetTop, height: contentHeight } = this.contentRect;
-    const { height: triggerHeight, offsetTop: triggerOffsetTop } = this.triggerRect;
-
-    const contentWindowTop =
-      this.trigger.getBoundingClientRect().top + triggerHeight + contentHeight + 80;
-
-    const targetPosition: NonNullable<typeof this.position> =
-      window.innerHeight > contentWindowTop ? 'bottom' : 'top';
-
-    this.position = targetPosition;
-
-    this.content.setAttribute('data-position', targetPosition);
-
-    if (targetPosition === 'bottom') {
-      setStyle(this.content, {
-        '--st-content-top': `${offsetTop}px`,
-      });
-    } else {
-      setStyle(this.content, {
-        '--st-content-top': `${triggerOffsetTop - contentHeight}px`,
-      });
-    }
-  }
-
-  private scrollAwareness() {
-    const onScroll = () => {
-      if (!this.isOpen) return;
-      this.setModalPosition();
-    };
-
-    const scrollObserver = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            window.addEventListener('scroll', onScroll);
-            return;
-          }
-          window.removeEventListener('scroll', onScroll);
-        }
-      },
-      { root: null, threshold: 0 }
-    );
-
-    scrollObserver.observe(this.trigger);
-  }
-
-  private resizeAwareness() {
-    const onResize = () => {
-      if (!this.isOpen) return;
-      this.setElementRects();
-      this.setModalPosition();
-    };
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const _ of entries) {
-        onResize();
+      if (value === '') {
+        triggerValue.textContent = optionElement.textContent;
+        optionElement.dataset.selected = 'false';
+        optionElement.ariaSelected = 'false';
+        continue;
       }
+
+      optionElement.dataset.selected = 'false';
+      optionElement.ariaSelected = 'false';
+      optionElement.classList.remove('selected');
+    }
+    nativeSelect.value = '';
+  };
+
+  const setModalPosition = () => {
+    computePosition(trigger, content, {
+      placement: 'bottom-start',
+      middleware: [
+        offset(),
+        flip(),
+        shift(),
+        size({
+          apply: ({ rects }) => {
+            setStyle(content, { 'min-width': `${rects.reference.width}px` });
+          },
+        }),
+      ],
+    }).then(({ x, y }) => {
+      setStyle(content, { left: `${x}px`, top: `${y}px` });
+    });
+  };
+
+  const closeModal = () => {
+    if (!isOpen) return;
+
+    fragment.appendChild(content);
+    isOpen = false;
+    trigger.ariaExpanded = 'false';
+
+    cleanupAutoUpdate?.();
+    cleanupOutsideInteraction?.();
+
+    keyboardNavigationCallback &&
+      document.removeEventListener('keydown', keyboardNavigationCallback);
+  };
+
+  const openModal = () => {
+    if (isOpen) return;
+
+    document.body.appendChild(content);
+    isOpen = true;
+    trigger.ariaExpanded = 'true';
+
+    if (selectedOptionIndex !== undefined) {
+      highlightOption(selectedOptionIndex);
+    }
+
+    setModalPosition();
+
+    cleanupAutoUpdate = autoUpdate(trigger, content, setModalPosition);
+    cleanupOutsideInteraction = trackInteractOutside(content, {
+      onPointerDownOutside: closeModal,
+      onInteractOutside: closeModal,
+      onFocusOutside: closeModal,
+      exclude: (target) => trigger.isSameNode(target) || trigger.contains(target),
     });
 
-    resizeObserver.observe(document.body);
-  }
-}
+    keyboardNavigationCallback = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+
+        if (highlightedOptionIndex === undefined) return;
+
+        selectOption(highlightedOptionIndex);
+        closeModal();
+      }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+
+        highlightOption(
+          highlightedOptionIndex === undefined || highlightedOptionIndex >= optionItems.length - 1
+            ? 0
+            : highlightedOptionIndex + 1,
+          'focus'
+        );
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+
+        highlightOption(
+          highlightedOptionIndex === undefined || highlightedOptionIndex <= 0
+            ? optionItems.length - 1
+            : highlightedOptionIndex - 1,
+          'focus'
+        );
+      }
+
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeModal();
+      }
+    };
+
+    document.addEventListener('keydown', keyboardNavigationCallback);
+  };
+
+  const selectOption = (optionIndex: number) => {
+    const optionElement = optionItems[optionIndex]!.element;
+
+    removeSelection();
+
+    selectedOptionIndex = optionIndex;
+    highlightOption(optionIndex, 'hover');
+
+    const value = optionElement.getAttribute('data-value');
+
+    if (value === null) {
+      throw new Error('Option element must have a value!');
+    }
+
+    if (value) {
+      nativeSelect.value = value;
+      triggerValue.setAttribute('data-selected', '');
+    } else {
+      nativeSelect.removeAttribute('value');
+      triggerValue.removeAttribute('data-selected');
+    }
+
+    triggerValue.textContent = optionElement.textContent?.trim() || null;
+
+    optionElement.ariaSelected = 'true';
+    optionElement.dataset.selected = 'true';
+    optionElement.classList.add('selected');
+
+    closeModal();
+  };
+
+  const initialSetup = () => {
+    // Trigger
+    trigger.setAttribute('type', 'button');
+    trigger.tagName !== 'BUTTON' && (trigger.role = 'button');
+    trigger.ariaHasPopup = 'listbox';
+    trigger.ariaExpanded = 'false';
+    trigger.setAttribute('aria-controls', elementIds.content);
+
+    trigger.addEventListener('click', () => {
+      openModal();
+    });
+
+    // Listbox
+    fragment.append(content);
+    content.role = 'listbox';
+    content.tabIndex = 0;
+    content.setAttribute('aria-labelledby', elementIds.trigger);
+    content.ariaOrientation = 'vertical';
+
+    if (rootElement.hasAttribute('data-required')) {
+      content.ariaRequired = 'true';
+    }
+
+    setStyle(content, {
+      position: 'absolute',
+      'min-width': `var(--st-content-min-w)`,
+      left: `var(--st-content-left)`,
+      top: `var(--st-content-top)`,
+    });
+
+    // Viewport
+    viewport.role = 'presentation';
+
+    // Options
+    for (let i = 0; i < optionItems.length; i++) {
+      const optionItem = optionItems[i]!;
+      optionItem.element.role = 'option';
+      optionItem.element.tabIndex = -1;
+
+      optionItem.element.ariaSelected = i === defaultOptionIndex ? 'true' : 'false';
+      optionItem.element.dataset.selected = i === defaultOptionIndex ? 'true' : 'false';
+
+      const svgs = optionItem.element.querySelectorAll('svg');
+
+      svgs.forEach((svg) => {
+        svg.ariaHidden = 'true';
+      });
+
+      optionItem.element.addEventListener('click', () => {
+        selectOption(i);
+      });
+
+      optionItem.element.addEventListener('mouseenter', () => {
+        highlightOption(i);
+      });
+      optionItem.element.addEventListener('mouseleave', () => {
+        dehighlightOptions();
+      });
+    }
+  };
+
+  initialSetup();
+};

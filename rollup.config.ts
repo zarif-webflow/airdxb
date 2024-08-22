@@ -19,7 +19,10 @@ export default defineConfig({
   output: {
     format: 'module',
     dir: 'dist',
-    manualChunks: { 'motion-one': ['motion'] },
+    manualChunks: {
+      'motion-one': ['motion'],
+      popper: ['@floating-ui/dom', '@zag-js/interact-outside'],
+    },
     chunkFileNames(chunkInfo) {
       return `chunks/${chunkInfo.name}.js`;
     },

@@ -16,11 +16,14 @@
     "typescript": "^5.5.2"
   },
   "dependencies": {
+    "@floating-ui/core": "^1.6.7",
+    "@floating-ui/dom": "^1.6.10",
     "@googlemaps/js-api-loader": "^1.16.8",
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-replace": "^5.0.7",
     "@types/lodash": "^4.17.7",
+    "@zag-js/interact-outside": "^0.65.1",
     "chart.js": "^4.4.3",
     "lodash": "^4.17.21",
     "motion": "^10.18.0",
