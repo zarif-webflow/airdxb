@@ -1,5 +1,5 @@
 import { Loader } from '@googlemaps/js-api-loader';
-import debounce from 'lodash/debounce';
+import { debounce } from 'es-toolkit';
 
 import { assertValue } from '@/utils/util';
 

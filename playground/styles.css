@@ -44,12 +44,12 @@ body {
   font-weight: 500;
 }
 
-.container {
+/* .container {
   max-width: 1300px;
   margin-inline: auto;
   padding-block: 4rem;
   padding-inline: 1rem;
-}
+} */
 
 .grid {
   display: grid;

@@ -26,18 +26,15 @@ importers:
       '@rollup/plugin-replace':
         specifier: ^5.0.7
         version: 5.0.7(rollup@4.20.0)
-      '@types/lodash':
-        specifier: ^4.17.7
-        version: 4.17.7
       '@zag-js/interact-outside':
         specifier: ^0.65.1
         version: 0.65.1
       chart.js:
         specifier: ^4.4.3
         version: 4.4.3
-      lodash:
-        specifier: ^4.17.21
-        version: 4.17.21
+      es-toolkit:
+        specifier: ^1.16.0
+        version: 1.16.0
       motion:
         specifier: ^10.18.0
         version: 10.18.0
@@ -50,6 +47,9 @@ importers:
       rollup-plugin-serve:
         specifier: ^1.1.1
         version: 1.1.1
+      split-type:
+        specifier: ^0.3.4
+        version: 0.3.4
     devDependencies:
       '@rollup/plugin-typescript':
         specifier: ^11.1.6
@@ -434,9 +434,6 @@ packages:
   '@types/google.maps@3.55.12':
     resolution: {integrity: sha512-Q8MsLE+YYIrE1H8wdN69YHHAF8h7ApvF5MiMXh/zeCpP9Ut745mV9M0F4X4eobZ2WJe9k8tW2ryYjLa87IO2Sg==}
 
-  '@types/lodash@4.17.7':
-    resolution: {integrity: sha512-8wTvZawATi/lsmNu10/j2hk1KEP0IvjubqPE3cu1Xz7xfXXt5oCq3SNUz4fMIP4XGF9Ky+Ue2tBA3hcS7LSBlA==}
-
   '@types/resolve@1.20.2':
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
 
@@ -622,6 +619,9 @@ packages:
 
   es-module-lexer@1.5.4:
     resolution: {integrity: sha512-MVNK56NiMrOwitFB7cqDwq0CQutbw+0BvLshJSse0MUNU+y1FC3bUS/AQg7oUng+/wKrrki7JfmwtVHkVfPLlw==}
+
+  es-toolkit@1.16.0:
+    resolution: {integrity: sha512-eNJh3zF1KmAHRYd1D8rFi1cMFMCjrC6tumBfwuuZdSur97mED/ifyeBoGzxS11L4owCMx3XSmWTo6oxJQkdGng==}
 
   esbuild@0.23.0:
     resolution: {integrity: sha512-1lvV17H2bMYda/WaFb2jLPeHU3zml2k4/yagNMG8Q/YtfMjCwEUZa2eXXMgZTVSL5q1n4H7sQ0X6CdJDqqeCFA==}
@@ -1042,6 +1042,9 @@ packages:
     resolution: {integrity: sha512-9NykojV5Uih4lgo5So5dtw+f0JgJX30KCNI8gwhz2J9A15wD0Ml6tjHKwf6fTSa6fAdVBdZeNOs9eJ71qCk8vA==}
     deprecated: Please use @jridgewell/sourcemap-codec instead
 
+  split-type@0.3.4:
+    resolution: {integrity: sha512-otEk9vnD8qwfLsk3Lx0gz+qRkNIJCx0mlyL47ImP/DjMuV39d75Lpfwjn9fHteDRz0aoOblSzQjSNT9+Sswxcg==}
+
   statuses@1.5.0:
     resolution: {integrity: sha512-OpZ3zP+jT1PI7I8nemJX4AKmAX070ZkYPVWV/AaKTJl+tXCTGyVdC1a4SL8RUQYEwk/f34ZX8UTykN68FwrqAA==}
     engines: {node: '>= 0.6'}
@@ -1448,8 +1451,6 @@ snapshots:
 
   '@types/google.maps@3.55.12': {}
 
-  '@types/lodash@4.17.7': {}
-
   '@types/resolve@1.20.2': {}
 
   '@zag-js/dom-event@0.65.1':
@@ -1626,6 +1627,8 @@ snapshots:
       magic-string: 0.25.9
 
   es-module-lexer@1.5.4: {}
+
+  es-toolkit@1.16.0: {}
 
   esbuild@0.23.0:
     optionalDependencies:
@@ -2115,6 +2118,8 @@ snapshots:
       flatstr: 1.0.12
 
   sourcemap-codec@1.4.8: {}
+
+  split-type@0.3.4: {}
 
   statuses@1.5.0: {}
 

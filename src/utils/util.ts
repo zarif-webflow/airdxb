@@ -1,10 +1,35 @@
-export function assertValue<T>(value: T | undefined | null, errorMessage?: string): T {
-  if (value === null || value === undefined) {
-    throw new Error(errorMessage ?? 'Value was not provided!');
+type NonUndefined<T> = T extends undefined ? never : T;
+
+class AssertionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AssertionError';
   }
+}
+
+export const assertValue = <T>(value: T, message: string, condition?: (value: T) => boolean) => {
+  if (
+    value === null ||
+    value === undefined ||
+    Number.isNaN(value) ||
+    (condition && !condition(value))
+  ) {
+    throw new AssertionError(message);
+  }
+  return value;
+};
+
+export const fallback = <T>(
+  value: T,
+  replacementValue: NonUndefined<T>,
+  condition?: (value: T) => boolean
+) => {
+  if (value !== undefined && condition && !condition(value)) return replacementValue;
+  if (value === undefined || Number.isNaN(value)) return replacementValue;
+  if (value === 0) return value;
 
   return value;
-}
+};
 
 export const wait = async (delayInMs: number) => new Promise((res) => setTimeout(res, delayInMs));
 

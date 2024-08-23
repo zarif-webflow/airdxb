@@ -15,6 +15,7 @@ export default defineConfig({
     'search-address': './src/features/search-address.ts',
     'trigger-reveals': './src/features/trigger-reveals.ts',
     'bar-charts': './src/features/bar-charts.ts',
+    'text-reveal': './src/features/text-reveal.ts',
   },
   output: {
     format: 'module',
