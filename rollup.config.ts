@@ -16,6 +16,7 @@ export default defineConfig({
     'trigger-reveals': './src/features/trigger-reveals.ts',
     'bar-charts': './src/features/bar-charts.ts',
     'text-reveal': './src/features/text-reveal.ts',
+    'navbar-bg-toggle': './src/features/navbar-bg-toggle.ts',
   },
   output: {
     format: 'module',

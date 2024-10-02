@@ -1,0 +1,1 @@
+import{f as s}from"./chunks/util.js";const e=()=>{const o=document.querySelector("[data-navbar-bg]");if(!o)return;const t=Number.parseInt(s(o.dataset.toggleBgPosition,"100"));window.addEventListener("scroll",()=>{window.scrollY>t?o.classList.add("below--top"):o.classList.remove("below--top")})};e();
