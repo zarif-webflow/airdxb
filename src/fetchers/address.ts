@@ -1,9 +1,16 @@
 import { Loader } from '@googlemaps/js-api-loader';
 import { debounce } from 'es-toolkit';
 
-import { assertValue } from '@/utils/util';
+const apiKeys = Array.from(document.querySelectorAll<HTMLInputElement>('[address-input-container]'))
+  .map((el) => el.dataset.placesKey)
+  .filter(Boolean) as string[];
 
-const apiKey = assertValue(document.body.dataset.placesKey, 'places api key was not found!');
+if (apiKeys.length === 0)
+  throw new Error(
+    'There wasnt any [address-input-container] element with data-places-key attribute!'
+  );
+
+const apiKey = apiKeys[0]!;
 
 const loader = new Loader({
   apiKey,
