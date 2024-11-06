@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "lib": ["DOM", "ES2020"],
+    "lib": ["DOM", "ES2020", "DOM.Iterable"],
     "noUncheckedIndexedAccess": true,
     "module": "ESNext",
     "noEmit": true,

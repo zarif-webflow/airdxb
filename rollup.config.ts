@@ -6,6 +6,7 @@ import tsPlugin from '@rollup/plugin-typescript';
 import esbuildPlugin from 'rollup-plugin-esbuild';
 import livereloadPlugin from 'rollup-plugin-livereload';
 import servePlugin from 'rollup-plugin-serve';
+import css from 'rollup-plugin-import-css';
 
 export default defineConfig({
   input: {
@@ -17,6 +18,7 @@ export default defineConfig({
     'bar-charts': './src/features/bar-charts.ts',
     'text-reveal': './src/features/text-reveal.ts',
     'navbar-bg-toggle': './src/features/navbar-bg-toggle.ts',
+    'intl-tel-input': './src/features/intl-tel-input.ts',
   },
   output: {
     format: 'module',
@@ -30,6 +32,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    css({ minify: true, output: 'intl-tel-input.css' }),
     replacePlugin({
       preventAssignment: true,
       'process.env.NODE_ENV': JSON.stringify('production'),

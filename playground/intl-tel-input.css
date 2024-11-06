@@ -1,0 +1,20 @@
+[data-intl-tel-input] {
+  background-color: initial;
+}
+
+.input {
+  border-radius: 1rem;
+  padding: 4px;
+  background-color: transparent;
+}
+
+input {
+  background: initial;
+  background-color: initial;
+}
+
+input.iti__search-input {
+  padding: 4px;
+  border-radius: 1rem;
+  background-color: transparent;
+}
