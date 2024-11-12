@@ -29,7 +29,9 @@ const run = () => {
 
     if (!inputParentForm) return;
 
-    const submitButton = inputParentForm.querySelector<HTMLButtonElement>('button[type=submit]');
+    const submitButton = inputParentForm.querySelector<HTMLButtonElement>(
+      'button[type=submit], input[type=submit]'
+    );
 
     if (!submitButton) throw new Error('Form submit button not found!');
 
