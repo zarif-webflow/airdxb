@@ -74,3 +74,21 @@ nextButton.addEventListener('click', () => {
 prevButton.addEventListener('click', () => {
   animatePrev();
 });
+
+const addHubspotFieldName = () => {
+  const selectRoot = form.querySelector<HTMLElement>('[data-st-root]');
+
+  if (!selectRoot) {
+    console.error("form[data-calculator-form] [data-st-root] wasn't found!");
+    return;
+  }
+
+  const hubSpotFieldName = selectRoot.dataset.wfhsfieldname;
+
+  if (hubSpotFieldName !== undefined) {
+    selectRoot.removeAttribute('data-wfhsfieldname');
+    bedroomsSelectElement.setAttribute('data-wfhsfieldname', hubSpotFieldName);
+  }
+};
+
+addHubspotFieldName();
