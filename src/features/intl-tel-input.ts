@@ -23,6 +23,7 @@ const run = () => {
         ),
       strictMode: true,
       separateDialCode: true,
+      initialCountry: 'ae',
     });
 
     const inputParentForm = input.closest<HTMLFormElement>('form');
