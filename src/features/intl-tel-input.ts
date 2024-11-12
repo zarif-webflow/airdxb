@@ -39,6 +39,8 @@ const run = () => {
 
     errorElement && (errorElement.style.display = 'none');
 
+    const hubSpotFieldName = input.dataset.wfhsfieldname;
+
     /**
      * Insert hidden inputs
      */
@@ -50,6 +52,11 @@ const run = () => {
 
     fullPhoneNumberInput.style.display = 'none';
     countryNameInput.style.display = 'none';
+
+    if (hubSpotFieldName !== undefined) {
+      input.removeAttribute('data-wfhsfieldname');
+      fullPhoneNumberInput.setAttribute('data-wfhsfieldname', hubSpotFieldName);
+    }
 
     inputParentForm.appendChild(fullPhoneNumberInput);
     inputParentForm.appendChild(countryNameInput);
