@@ -31,10 +31,13 @@ const run = () => {
     if (!inputParentForm) return;
 
     const submitButton = inputParentForm.querySelector<HTMLButtonElement>(
-      'button[type=submit], input[type=submit]'
+      'button[type=submit], input[type=submit], [data-tform-submit=true]'
     );
 
-    if (!submitButton) throw new Error('Form submit button not found!');
+    if (!submitButton) {
+      console.error('Form submit button not found!');
+      continue;
+    }
 
     const errorElement = inputParentForm.querySelector<HTMLElement>('[data-phone-error]');
 
