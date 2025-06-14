@@ -23,6 +23,7 @@
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-replace": "^5.0.7",
+    "@taj-wf/utils": "^1.1.4",
     "@zag-js/interact-outside": "^0.65.1",
     "chart.js": "^4.4.4",
     "es-toolkit": "^1.16.0",

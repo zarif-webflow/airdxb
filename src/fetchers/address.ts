@@ -1,19 +1,23 @@
 import { Loader } from '@googlemaps/js-api-loader';
 import { debounce } from 'es-toolkit';
+import { getActiveScript } from '@taj-wf/utils';
 
-const apiKeys = Array.from(document.querySelectorAll<HTMLInputElement>('[address-input-container]'))
-  .map((el) => el.dataset.placesKey)
-  .filter(Boolean) as string[];
+const scriptElement = getActiveScript();
 
-if (apiKeys.length === 0)
+if (!scriptElement) {
+  throw new Error('Search Address script element was not found!');
+}
+
+const placesApiKey = scriptElement.getAttribute('data-places-key');
+
+if (!placesApiKey) {
   throw new Error(
-    'There wasnt any [address-input-container] element with data-places-key attribute!'
+    'Places API key was not found in the script element! Please set data-places-key attribute in the script.'
   );
-
-const apiKey = apiKeys[0]!;
+}
 
 const loader = new Loader({
-  apiKey,
+  apiKey: placesApiKey,
   version: 'weekly',
 });
 

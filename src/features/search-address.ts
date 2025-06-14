@@ -166,7 +166,7 @@ const initSearchAddress = () => {
       }
 
       keyboardNavigationCallback = (e: KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+        if (e.key === 'Enter') {
           e.preventDefault();
           addressInput.blur();
           selectResultItem(highlightedIndex);

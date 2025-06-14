@@ -5,14 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="./src.css" />
     <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./intl-tel-input.css" />
     <link rel="stylesheet" href="./search.css" />
     <link rel="stylesheet" href="./select.css" />
     <link rel="stylesheet" href="./line-chart.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/intl-tel-input@24.6.1/build/css/intlTelInput.css"
+    />
     <script type="module" src="http://localhost:3000/select.js"></script>
     <script type="module" src="http://localhost:3000/search-address.js"></script>
     <script type="module" src="http://localhost:3000/multi-step-form.js"></script>
-    <script type="module" src="http://localhost:3000/line-chart.js"></script>
-    <script type="module" src="http://localhost:3000/bar-charts.js"></script>
+    <!-- <script type="module" src="http://localhost:3000/line-chart.js"></script>  -->
+    <!-- <script type="module" src="http://localhost:3000/bar-charts.js"></script> -->
+    <script type="module" src="http://localhost:3000/intl-tel-input.js"></script>
     <!-- <script type="module" src="/dist/select.js"></script>
     <script type="module" src="/dist/search-address.js"></script>
     <script type="module" src="/dist/multi-step-form.js"></script>
@@ -66,6 +72,12 @@
               </div>
             </div>
           </div>
+
+          <form id="telephone-input-form">
+            <input data-intl-tel-input="" type="tel" class="input" />
+            <button type="submit">Submit</button>
+          </form>
+
           <form
             id="email-form"
             name="email-form"
@@ -388,6 +400,7 @@
                   placeholder="Name"
                   type="text"
                   id="Name"
+                  required
                 />
               </div>
               <div class="calculator-form_input-divider"></div>
@@ -452,10 +465,10 @@
                   maxlength="256"
                   name="Phone"
                   data-name="Phone"
-                  placeholder="Phone"
                   type="tel"
                   id="Phone"
                 />
+                <p data-phone-error></p>
               </div>
               <div class="button_wrapper-calculator">
                 <button class="next_button-calculator" type="button" data-prev-button>
