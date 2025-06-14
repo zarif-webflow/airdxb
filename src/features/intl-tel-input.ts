@@ -1,3 +1,4 @@
+import { getMultipleHtmlElements } from '@taj-wf/utils';
 import intlTelInput from 'intl-tel-input';
 
 const errorMap = [
@@ -7,6 +8,16 @@ const errorMap = [
   'Too long',
   'Invalid number',
 ];
+
+const takeLenisScrollIntoAccount = () => {
+  const allItiDropdowns = getMultipleHtmlElements({ selector: '.iti__dropdown-content' });
+
+  if (!allItiDropdowns) return;
+
+  for (const dropdown of allItiDropdowns) {
+    dropdown.setAttribute('data-lenis-prevent', '');
+  }
+};
 
 const run = () => {
   const intlTelInputElements = Array.from(
@@ -112,6 +123,8 @@ const run = () => {
       errorElement.innerText = errorMessage;
     });
   }
+
+  takeLenisScrollIntoAccount();
 };
 
 run();
