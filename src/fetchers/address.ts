@@ -22,40 +22,38 @@ const loader = new Loader({
 });
 
 const getFetchAddressesFunc = async () => {
-  const service = new (await loader.importLibrary('places')).AutocompleteService();
+  const { AutocompleteSuggestion } = await loader.importLibrary('places');
 
   const addressQueryCache: Map<string, string[]> = new Map();
 
-  const fetchAddresses = (query: string, callback: (result: string[]) => void) => {
+  const fetchAddresses = async (query: string, callback: (result: string[]) => void) => {
     const cachedResult = addressQueryCache.get(query);
-
     if (cachedResult !== undefined) {
       callback(cachedResult);
       return;
     }
 
-    const returnCallback = (
-      predictions: google.maps.places.QueryAutocompletePrediction[] | null,
-      status: google.maps.places.PlacesServiceStatus
-    ) => {
-      let result: string[] = [];
+    try {
+      const request: google.maps.places.AutocompleteRequest = {
+        input: query,
+        includedRegionCodes: ['ae'],
+      };
 
-      if (status !== google.maps.places.PlacesServiceStatus.OK && status !== 'ZERO_RESULTS') {
-        console.error(`Something went wrong with places api. Status ${status}`);
-      }
+      const suggestions = await AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
 
-      if (predictions !== null) {
-        result = predictions.map((item) => item.description);
-      }
+      const result = suggestions.suggestions
+        .filter((suggestion) => suggestion.placePrediction != null)
+        .map((suggestion) => suggestion.placePrediction!.text.text);
 
       addressQueryCache.set(query, result);
       callback(result);
-    };
-
-    service.getPlacePredictions(
-      { input: query, componentRestrictions: { country: 'ae' } },
-      returnCallback
-    );
+    } catch (error) {
+      console.error('Something went wrong with places api:', error);
+      // Return empty array on error and cache it to avoid repeated failed requests
+      const emptyResult: string[] = [];
+      addressQueryCache.set(query, emptyResult);
+      callback(emptyResult);
+    }
   };
 
   const debouncedFetchAddresses = debounce(fetchAddresses, 100);
