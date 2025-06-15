@@ -22,38 +22,40 @@ const loader = new Loader({
 });
 
 const getFetchAddressesFunc = async () => {
-  const { AutocompleteSuggestion } = await loader.importLibrary('places');
+  const service = new (await loader.importLibrary('places')).AutocompleteService();
 
   const addressQueryCache: Map<string, string[]> = new Map();
 
-  const fetchAddresses = async (query: string, callback: (result: string[]) => void) => {
+  const fetchAddresses = (query: string, callback: (result: string[]) => void) => {
     const cachedResult = addressQueryCache.get(query);
+
     if (cachedResult !== undefined) {
       callback(cachedResult);
       return;
     }
 
-    try {
-      const request: google.maps.places.AutocompleteRequest = {
-        input: query,
-        includedRegionCodes: ['ae'],
-      };
+    const returnCallback = (
+      predictions: google.maps.places.QueryAutocompletePrediction[] | null,
+      status: google.maps.places.PlacesServiceStatus
+    ) => {
+      let result: string[] = [];
 
-      const suggestions = await AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
+      if (status !== google.maps.places.PlacesServiceStatus.OK && status !== 'ZERO_RESULTS') {
+        console.error(`Something went wrong with places api. Status ${status}`);
+      }
 
-      const result = suggestions.suggestions
-        .filter((suggestion) => suggestion.placePrediction != null)
-        .map((suggestion) => suggestion.placePrediction!.text.text);
+      if (predictions !== null) {
+        result = predictions.map((item) => item.description);
+      }
 
       addressQueryCache.set(query, result);
       callback(result);
-    } catch (error) {
-      console.error('Something went wrong with places api:', error);
-      // Return empty array on error and cache it to avoid repeated failed requests
-      const emptyResult: string[] = [];
-      addressQueryCache.set(query, emptyResult);
-      callback(emptyResult);
-    }
+    };
+
+    service.getPlacePredictions(
+      { input: query, componentRestrictions: { country: 'ae' } },
+      returnCallback
+    );
   };
 
   const debouncedFetchAddresses = debounce(fetchAddresses, 100);
