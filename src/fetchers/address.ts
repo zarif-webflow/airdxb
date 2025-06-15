@@ -1,6 +1,13 @@
 import { Loader } from '@googlemaps/js-api-loader';
+import { getHtmlElement } from '@taj-wf/utils';
 import { debounce } from 'es-toolkit';
-import { getActiveScript } from '@taj-wf/utils';
+
+const getActiveScript = () => {
+  const currentModuleUrl = import.meta.url;
+  return getHtmlElement<HTMLScriptElement>({
+    selector: `script[src="${currentModuleUrl}"]`,
+  });
+};
 
 const scriptElement = getActiveScript();
 
