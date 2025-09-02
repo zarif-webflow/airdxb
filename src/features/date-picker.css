@@ -1,0 +1,24 @@
+.datepicker {
+  color: var(--_themes---date-picker--modal-text);
+}
+
+.datepicker-cell.selected,
+.datepicker-cell.selected:hover {
+  background-color: var(--_themes---date-picker--active-btn-bg);
+  color: var(--_themes---date-picker--active-btn-text);
+}
+
+.datepicker-picker {
+  padding: 0.5rem;
+  border-radius: 1rem;
+}
+
+.days-of-week {
+  padding: 0.5rem;
+  background-color: var(--_themes---date-picker--days-of-week);
+  border-radius: 0.5rem;
+}
+
+.datepicker-grid {
+  padding: 0.5rem;
+}

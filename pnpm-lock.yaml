@@ -56,6 +56,9 @@ importers:
       split-type:
         specifier: ^0.3.4
         version: 0.3.4
+      vanillajs-datepicker:
+        specifier: ^1.3.4
+        version: 1.3.4
     devDependencies:
       '@rollup/plugin-typescript':
         specifier: ^11.1.6
@@ -63,6 +66,9 @@ importers:
       '@types/google.maps':
         specifier: ^3.58.1
         version: 3.58.1
+      '@types/vanillajs-datepicker':
+        specifier: ^1.3.5
+        version: 1.3.5
       rollup:
         specifier: ^4.20.0
         version: 4.20.0
@@ -452,6 +458,9 @@ packages:
 
   '@types/resolve@1.20.2':
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
+
+  '@types/vanillajs-datepicker@1.3.5':
+    resolution: {integrity: sha512-QEFhLVACZEyvCd/N/28JhVMMa4u3Z6QvX9InJhcBNjV0VevQ4ZgYrc1RqH3bsstJH6pB0Uy75/nwCkx8j4NIIQ==}
 
   '@zag-js/dom-event@0.65.1':
     resolution: {integrity: sha512-CYenhSuEaB9H6yjty1JSUk6sRu20Wg7rlEl8vsEfS/PDExJARWYptwml3J5s5PV9dKJgoOcDcH3w0tmgzYomPw==}
@@ -1142,6 +1151,9 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
+  vanillajs-datepicker@1.3.4:
+    resolution: {integrity: sha512-waOyp2Ay+K1VA/B5cNlFgSNzFR9efCVKaoyMyNEAhAwmKLzMB9nCJs6Vqmo6HuHWA98VEHXbgz5thZ7hH/uohA==}
+
   which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
     engines: {node: '>= 8'}
@@ -1487,6 +1499,8 @@ snapshots:
   '@types/google.maps@3.58.1': {}
 
   '@types/resolve@1.20.2': {}
+
+  '@types/vanillajs-datepicker@1.3.5': {}
 
   '@zag-js/dom-event@0.65.1':
     dependencies:
@@ -2220,6 +2234,8 @@ snapshots:
       punycode: 2.3.1
 
   util-deprecate@1.0.2: {}
+
+  vanillajs-datepicker@1.3.4: {}
 
   which@2.0.2:
     dependencies:

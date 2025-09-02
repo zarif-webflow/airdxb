@@ -19,6 +19,7 @@ export default defineConfig({
     'text-reveal': './src/features/text-reveal.ts',
     'navbar-bg-toggle': './src/features/navbar-bg-toggle.ts',
     'intl-tel-input': './src/features/intl-tel-input.ts',
+    'date-picker': './src/features/date-picker.ts',
   },
   output: {
     format: 'module',
