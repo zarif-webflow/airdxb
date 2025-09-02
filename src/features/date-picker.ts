@@ -30,6 +30,11 @@ const initDatePicker = () => {
         },
       },
     });
+
+    // Prevent input from being focused when clicked
+    datePickerEl.addEventListener('click', () => {
+      datePickerEl.blur();
+    });
   }
 };
 
