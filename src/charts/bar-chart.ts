@@ -1,9 +1,9 @@
-import { Chart } from '@/charts/chartjs';
-import { BarChartData } from '@/types/bar-chart';
-import { assertValue, parseFloatFallback } from '@/utils/util';
-import { ChartConfiguration, Scale, TooltipItem } from 'chart.js';
+import { Chart } from "@/charts/chartjs";
+import { BarChartData } from "@/types/bar-chart";
+import { assertValue, parseFloatFallback } from "@/utils/util";
+import { ChartConfiguration, Scale, TooltipItem } from "chart.js";
 
-const BAR_CHART_DEFAULT_COLOR = '#000000';
+const BAR_CHART_DEFAULT_COLOR = "#000000";
 
 export const barChart = ({
   canvasElement,
@@ -17,39 +17,39 @@ export const barChart = ({
   data: BarChartData;
   xTickCallback?: (this: Scale, ctx: string | number) => string;
   yTickCallback?: (this: Scale, ctx: string | number) => string;
-  tooltipLabelCallback?: (data: TooltipItem<'bar'>) => string;
-  onChartInit?: (chart: Chart<'bar', (number | [number, number] | null)[], unknown>) => void;
+  tooltipLabelCallback?: (data: TooltipItem<"bar">) => string;
+  onChartInit?: (chart: Chart<"bar", (number | [number, number] | null)[], unknown>) => void;
 }) => {
   const computedStyles = window.getComputedStyle(canvasElement);
 
   const { fontFamily, fontWeight, fontSize } = computedStyles;
 
   const barFillColor =
-    window.getComputedStyle(document.documentElement).getPropertyValue('--bar-fill') ||
+    window.getComputedStyle(document.documentElement).getPropertyValue("--bar-fill") ||
     BAR_CHART_DEFAULT_COLOR;
   const barGridColor =
-    window.getComputedStyle(document.documentElement).getPropertyValue('--bar-grid') ||
+    window.getComputedStyle(document.documentElement).getPropertyValue("--bar-grid") ||
     BAR_CHART_DEFAULT_COLOR;
   const barBorderColor =
-    window.getComputedStyle(document.documentElement).getPropertyValue('--bar-border') ||
+    window.getComputedStyle(document.documentElement).getPropertyValue("--bar-border") ||
     BAR_CHART_DEFAULT_COLOR;
   const barRadiusCssVar = window
     .getComputedStyle(document.documentElement)
-    .getPropertyValue('--bar-radius');
+    .getPropertyValue("--bar-radius");
 
   const barRadius =
-    barRadiusCssVar !== '' ? Number.parseFloat(barRadiusCssVar.replace('px', '')) : 16;
+    barRadiusCssVar !== "" ? Number.parseFloat(barRadiusCssVar.replace("px", "")) : 16;
 
   const barParent = assertValue(
-    canvasElement.closest<HTMLElement>('[data-bar-parent]'),
-    'Canvas parent element([data-bar-parent]) was not found!'
+    canvasElement.closest<HTMLElement>("[data-bar-parent]"),
+    "Canvas parent element([data-bar-parent]) was not found!"
   );
   const animationDuration = parseFloatFallback(barParent?.dataset.animationDuration, 1) * 1000;
   const animationDelay = parseFloatFallback(barParent?.dataset.animationDelay, 0) * 1000;
   const viewportThreshold = parseFloatFallback(barParent?.dataset.viewportThreshold, 0.8);
   const viewportMargin = parseFloatFallback(barParent?.dataset.viewportMargin, 0);
 
-  const config: ChartConfiguration<'bar', (number | [number, number] | null)[], unknown> = {
+  const config: ChartConfiguration<"bar", (number | [number, number] | null)[], unknown> = {
     data: {
       datasets: [
         {
@@ -60,10 +60,10 @@ export const barChart = ({
       ],
       labels: data.map((item) => item.label),
     },
-    type: 'bar',
+    type: "bar",
     options: {
       //   borderColor: 'transparent',
-      indexAxis: 'y',
+      indexAxis: "y",
       responsive: true,
       animation: {
         duration: animationDuration,
@@ -77,7 +77,7 @@ export const barChart = ({
           },
           padding: 9,
           titleMarginBottom: 8,
-          titleAlign: 'left',
+          titleAlign: "left",
           footerMarginTop: 0,
           displayColors: false,
         },
@@ -110,7 +110,7 @@ export const barChart = ({
 
         setTimeout(() => {
           Chart.defaults.font.family = fontFamily;
-          Chart.defaults.font.size = Number.parseFloat(fontSize.replace('px', ''));
+          Chart.defaults.font.size = Number.parseFloat(fontSize.replace("px", ""));
           Chart.defaults.font.weight = Number.parseFloat(fontWeight);
 
           document.fonts.ready.then(() => {

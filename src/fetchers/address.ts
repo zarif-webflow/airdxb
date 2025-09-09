@@ -1,6 +1,6 @@
-import { Loader } from '@googlemaps/js-api-loader';
-import { getHtmlElement } from '@taj-wf/utils';
-import { debounce } from 'es-toolkit';
+import { Loader } from "@googlemaps/js-api-loader";
+import { getHtmlElement } from "@taj-wf/utils";
+import { debounce } from "es-toolkit";
 
 const getActiveScript = () => {
   const currentModuleUrl = import.meta.url;
@@ -12,24 +12,24 @@ const getActiveScript = () => {
 const scriptElement = getActiveScript();
 
 if (!scriptElement) {
-  throw new Error('Search Address script element was not found!');
+  throw new Error("Search Address script element was not found!");
 }
 
-const placesApiKey = scriptElement.getAttribute('data-places-key');
+const placesApiKey = scriptElement.getAttribute("data-places-key");
 
 if (!placesApiKey) {
   throw new Error(
-    'Places API key was not found in the script element! Please set data-places-key attribute in the script.'
+    "Places API key was not found in the script element! Please set data-places-key attribute in the script."
   );
 }
 
 const loader = new Loader({
   apiKey: placesApiKey,
-  version: 'weekly',
+  version: "weekly",
 });
 
 const getFetchAddressesFunc = async () => {
-  const { AutocompleteSuggestion } = await loader.importLibrary('places');
+  const { AutocompleteSuggestion } = await loader.importLibrary("places");
 
   const addressQueryCache: Map<string, string[]> = new Map();
 
@@ -43,7 +43,7 @@ const getFetchAddressesFunc = async () => {
     try {
       const request: google.maps.places.AutocompleteRequest = {
         input: query,
-        includedRegionCodes: ['ae'],
+        includedRegionCodes: ["ae"],
       };
 
       const suggestions = await AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
@@ -55,7 +55,7 @@ const getFetchAddressesFunc = async () => {
       addressQueryCache.set(query, result);
       callback(result);
     } catch (error) {
-      console.error('Something went wrong with places api:', error);
+      console.error("Something went wrong with places api:", error);
       // Return empty array on error and cache it to avoid repeated failed requests
       const emptyResult: string[] = [];
       addressQueryCache.set(query, emptyResult);

@@ -1,19 +1,19 @@
-import { fallback } from '@/utils/util';
+import { fallback } from "@/utils/util";
 
 const initNavbarBgToggle = () => {
-  const navbar = document.querySelector<HTMLDivElement>('[data-navbar-bg]');
+  const navbar = document.querySelector<HTMLDivElement>("[data-navbar-bg]");
 
   if (!navbar) return;
 
-  const toggleBgPosition = Number.parseInt(fallback(navbar.dataset.toggleBgPosition, '100'));
+  const toggleBgPosition = Number.parseInt(fallback(navbar.dataset.toggleBgPosition, "100"));
 
-  window.addEventListener('scroll', () => {
+  window.addEventListener("scroll", () => {
     const position = window.scrollY;
 
     if (position > toggleBgPosition) {
-      navbar.classList.add('below--top');
+      navbar.classList.add("below--top");
     } else {
-      navbar.classList.remove('below--top');
+      navbar.classList.remove("below--top");
     }
   });
 };

@@ -1,14 +1,14 @@
-import { type ChartConfiguration } from 'chart.js';
-import { Chart } from '@/charts/chartjs';
+import { type ChartConfiguration } from "chart.js";
 
-import { LINE_CHART_DEFAULT_COLOR } from '@/utils/constants';
-import { data } from '@/utils/static-data';
-import { assertValue, hexToRgb, parseFloatFallback } from '@/utils/util';
+import { Chart } from "@/charts/chartjs";
+import { LINE_CHART_DEFAULT_COLOR } from "@/utils/constants";
+import { data } from "@/utils/static-data";
+import { assertValue, hexToRgb, parseFloatFallback } from "@/utils/util";
 
 const initChart = () => {
   const canvasElement = assertValue(
-    document.querySelector<HTMLCanvasElement>('#line-chart'),
-    'Canvas element(#line-chart) was not found!'
+    document.querySelector<HTMLCanvasElement>("#line-chart"),
+    "Canvas element(#line-chart) was not found!"
   );
 
   const computedStyles = window.getComputedStyle(canvasElement);
@@ -16,24 +16,24 @@ const initChart = () => {
   const { fontFamily, fontWeight, fontSize } = computedStyles;
 
   const colorLine =
-    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-line') ||
+    window.getComputedStyle(document.documentElement).getPropertyValue("--chart-line") ||
     LINE_CHART_DEFAULT_COLOR;
   const colorBorder =
-    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-border') ||
+    window.getComputedStyle(document.documentElement).getPropertyValue("--chart-border") ||
     LINE_CHART_DEFAULT_COLOR;
   const colorBorderMiddle =
-    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-border-middle') ||
+    window.getComputedStyle(document.documentElement).getPropertyValue("--chart-border-middle") ||
     LINE_CHART_DEFAULT_COLOR;
   const colorText =
-    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-text') ||
+    window.getComputedStyle(document.documentElement).getPropertyValue("--chart-text") ||
     LINE_CHART_DEFAULT_COLOR;
   const colorTextSecondary =
-    window.getComputedStyle(document.documentElement).getPropertyValue('--chart-text-secondary') ||
+    window.getComputedStyle(document.documentElement).getPropertyValue("--chart-text-secondary") ||
     LINE_CHART_DEFAULT_COLOR;
 
   const chartParent = assertValue(
-    canvasElement.closest<HTMLElement>('[data-chart-parent]'),
-    'Canvas parent element([data-chart-parent]) was not found!'
+    canvasElement.closest<HTMLElement>("[data-chart-parent]"),
+    "Canvas parent element([data-chart-parent]) was not found!"
   );
   const animationDuration = parseFloatFallback(chartParent?.dataset.animationDuration, 1) * 1000;
   const animationDelay = parseFloatFallback(chartParent?.dataset.animationDelay, 0) * 1000;
@@ -47,8 +47,8 @@ const initChart = () => {
   const maxValue = values.reduce((acc, curr) => (curr > acc ? curr : acc), 0);
   const numberOfLines = Math.ceil(maxValue / stepSize) + 1;
 
-  const config: ChartConfiguration<'line', number[], string> = {
-    type: 'line',
+  const config: ChartConfiguration<"line", number[], string> = {
+    type: "line",
     data: {
       labels: months,
       datasets: [
@@ -56,7 +56,7 @@ const initChart = () => {
           data: values,
           borderWidth: 3,
           borderColor: colorLine,
-          pointStyle: 'circle',
+          pointStyle: "circle",
           pointRadius: 3,
           fill: true,
           backgroundColor: (ctx) => {
@@ -111,8 +111,8 @@ const initChart = () => {
             padding: 10,
             color: colorTextSecondary,
             callback: (ctx) => {
-              if (ctx.toString() === '0') return '0';
-              return ctx.toString() + 'k';
+              if (ctx.toString() === "0") return "0";
+              return ctx.toString() + "k";
             },
           },
           border: {
@@ -126,14 +126,14 @@ const initChart = () => {
           callbacks: {
             label: (data) => {
               const text = `${
-                (Number.parseFloat(String(data.raw)) * 1000).toLocaleString() || 'N/A'
+                (Number.parseFloat(String(data.raw)) * 1000).toLocaleString() || "N/A"
               }`;
               return text.length >= 10 ? text : text.padEnd(10);
             },
           },
           padding: 9,
           titleMarginBottom: 8,
-          titleAlign: 'left',
+          titleAlign: "left",
           footerMarginTop: 0,
           displayColors: false,
         },
@@ -148,7 +148,7 @@ const initChart = () => {
 
         setTimeout(() => {
           Chart.defaults.font.family = fontFamily;
-          Chart.defaults.font.size = Number.parseFloat(fontSize.replace('px', ''));
+          Chart.defaults.font.size = Number.parseFloat(fontSize.replace("px", ""));
           Chart.defaults.font.weight = Number.parseFloat(fontWeight);
 
           let graph = new Chart(canvasElement, config);

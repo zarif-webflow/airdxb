@@ -1,15 +1,15 @@
 import {
   CategoryScale,
   Chart,
+  elements,
   Filler,
   LinearScale,
   LineController,
   LineElement,
   PointElement,
   Tooltip,
-  elements,
-} from 'chart.js';
-import { controllers } from 'chart.js';
+} from "chart.js";
+import { controllers } from "chart.js";
 
 Chart.register(
   Tooltip,

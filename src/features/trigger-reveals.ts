@@ -1,10 +1,10 @@
 const init = () => {
   const triggerRevealParents = Array.from(
-    document.querySelectorAll<HTMLElement>('[data-trigger-reveal-parent]')
+    document.querySelectorAll<HTMLElement>("[data-trigger-reveal-parent]")
   );
 
   if (triggerRevealParents.length === 0) {
-    console.error('No trigger reveal parent ([data-trigger-reveal-parent]) was found.');
+    console.error("No trigger reveal parent ([data-trigger-reveal-parent]) was found.");
     return;
   }
 
@@ -13,14 +13,14 @@ const init = () => {
 
   const selectTrigger = (triggerElement: HTMLElement, revealElement: HTMLElement) => {
     if (selectedTrigger) {
-      selectedTrigger.classList.remove('is--active');
+      selectedTrigger.classList.remove("is--active");
     }
     if (selectedRevealElement) {
-      selectedRevealElement.classList.add('is--hidden');
+      selectedRevealElement.classList.add("is--hidden");
     }
 
-    triggerElement.classList.add('is--active');
-    revealElement.classList.remove('is--hidden');
+    triggerElement.classList.add("is--active");
+    revealElement.classList.remove("is--hidden");
 
     selectedTrigger = triggerElement;
     selectedRevealElement = revealElement;
@@ -28,12 +28,12 @@ const init = () => {
 
   for (const triggerRevealParent of triggerRevealParents) {
     const triggers = Array.from(
-      triggerRevealParent.querySelectorAll<HTMLElement>('[data-trigger]')
+      triggerRevealParent.querySelectorAll<HTMLElement>("[data-trigger]")
     );
 
     if (triggers.length === 0) {
       console.error(
-        'No triggers([data-trigger]) were found in a trigger reveal parent ([data-trigger-reveal-parent]).'
+        "No triggers([data-trigger]) were found in a trigger reveal parent ([data-trigger-reveal-parent])."
       );
       return;
     }
@@ -46,7 +46,7 @@ const init = () => {
       const triggerKey = trigger.dataset.trigger;
 
       if (!triggerKey) {
-        console.error('Invalid trigger key on a reveal trigger!');
+        console.error("Invalid trigger key on a reveal trigger!");
         continue;
       }
 
@@ -63,7 +63,7 @@ const init = () => {
         selectTrigger(trigger, revealElement);
       }
 
-      trigger.addEventListener('click', (e) => {
+      trigger.addEventListener("click", (e) => {
         e.preventDefault();
 
         selectTrigger(trigger, revealElement);
