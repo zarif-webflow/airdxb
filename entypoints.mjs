@@ -11,4 +11,5 @@ export const ENTRY_POINTS = [
   "src/features/bar-charts.ts",
   "src/features/navbar-bg-toggle.ts",
   "src/features/date-picker.ts",
+  "src/features/hubspot-field-inserter.ts",
 ];

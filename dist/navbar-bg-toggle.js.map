@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../src/features/navbar-bg-toggle.ts"],
+  "sourcesContent": ["import { fallback } from \"@/utils/util\";\n\nconst initNavbarBgToggle = () => {\n  const navbar = document.querySelector<HTMLDivElement>(\"[data-navbar-bg]\");\n\n  if (!navbar) return;\n\n  const toggleBgPosition = Number.parseInt(fallback(navbar.dataset.toggleBgPosition, \"100\"));\n\n  window.addEventListener(\"scroll\", () => {\n    const position = window.scrollY;\n\n    if (position > toggleBgPosition) {\n      navbar.classList.add(\"below--top\");\n    } else {\n      navbar.classList.remove(\"below--top\");\n    }\n  });\n};\n\ninitNavbarBgToggle();\n"],
+  "mappings": ";;;;;;AAEA,IAAM,qBAAqB,MAAM;AAC/B,QAAM,SAAS,SAAS,cAA8B,kBAAkB;AAExE,MAAI,CAAC,OAAQ;AAEb,QAAM,mBAAmB,OAAO,SAAS,SAAS,OAAO,QAAQ,kBAAkB,KAAK,CAAC;AAEzF,SAAO,iBAAiB,UAAU,MAAM;AACtC,UAAM,WAAW,OAAO;AAExB,QAAI,WAAW,kBAAkB;AAC/B,aAAO,UAAU,IAAI,YAAY;AAAA,IACnC,OAAO;AACL,aAAO,UAAU,OAAO,YAAY;AAAA,IACtC;AAAA,EACF,CAAC;AACH;AAEA,mBAAmB;",
+  "names": []
+}
