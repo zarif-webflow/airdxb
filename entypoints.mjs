@@ -12,4 +12,6 @@ export const ENTRY_POINTS = [
   "src/features/navbar-bg-toggle.ts",
   "src/features/date-picker.ts",
   "src/features/hubspot-field-inserter.ts",
+  "src/features/property-forms-accordion.ts",
+  "src/features/smooth-scroll.ts",
 ];
