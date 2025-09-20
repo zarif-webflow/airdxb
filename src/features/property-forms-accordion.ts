@@ -52,6 +52,9 @@ const initPropertyFormsAccordion = () => {
 
   if (!listingFormTogglers || !bookingFormTogglers) return;
 
+  const listingArrow = getHtmlElement({ selector: "[accordion-form=listing-arrow]" });
+  const bookingArrow = getHtmlElement({ selector: "[accordion-form=booking-arrow]" });
+
   for (const listingToggler of listingFormTogglers) {
     listingToggler.addEventListener("click", () => {
       if (listingToggler.hasAttribute("scroll-to-form")) {
@@ -67,6 +70,8 @@ const initPropertyFormsAccordion = () => {
           listingFormContent.style.overflowY = "visible";
         },
       });
+      gsap.to(bookingArrow, { rotate: 0, duration: 0.15 });
+      gsap.to(listingArrow, { rotate: -90, duration: 0.15 });
     });
   }
 
@@ -85,6 +90,8 @@ const initPropertyFormsAccordion = () => {
           bookingFormContent.style.overflowY = "visible";
         },
       });
+      gsap.to(bookingArrow, { rotate: -90, duration: 0.15 });
+      gsap.to(listingArrow, { rotate: 0, duration: 0.15 });
     });
   }
 };
